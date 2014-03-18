@@ -1,6 +1,6 @@
 <?php
 /**
- * PHP Version 5.4
+ * Database Exception
  *
  * CakePHP(tm) : Rapid Development Framework (http://cakephp.org)
  * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
@@ -17,27 +17,8 @@
 namespace Cake\Database;
 
 /**
- * An interface used by Expression objects.
+ * Exception for the database package.
  */
-interface ExpressionInterface {
-
-/**
- * Converts the Node into a SQL string fragment.
- *
- * @param \Cake\Database\ValueBinder $generator Placeholder generator object
- * @return string
- */
-	public function sql(ValueBinder $generator);
-
-/**
- * Iterates over each part of the expression recursively for every
- * level of the expressions tree and executes the $visitor callable
- * passing as first parameter the instance of the expression currently
- * being iterated.
- *
- * @param callable $visitor
- * @return void
- */
-	public function traverse(callable $visitor);
+class Exception extends \Cake\Error\Exception {
 
 }

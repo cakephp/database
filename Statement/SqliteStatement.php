@@ -14,27 +14,30 @@
  * @since         3.0.0
  * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
-namespace Cake\Database\Expression;
-
-use Cake\Database\ExpressionInterface;
-use Cake\Database\ValueBinder;
-
-class UnaryExpression extends QueryExpression {
+namespace Cake\Database\Statement;
 
 /**
- * Converts the expression to its string representation
+ * Statement class meant to be used by an Sqlite driver
  *
- * @param \Cake\Database\ValueBinder $generator Placeholder generator object
- * @return string
  */
-	public function sql(ValueBinder $generator) {
-		foreach ($this->_conditions as $condition) {
-			if ($condition instanceof ExpressionInterface) {
-				$condition = $condition->sql($generator);
-			}
-			// We only use the first (and only) condition
-			return $this->_conjunction . ' (' . $condition . ')';
+class SqliteStatement extends BufferedStatement {
+
+/**
+ * Returns the number of rows returned of affected by last execution
+ *
+ * @return int
+ */
+	public function rowCount() {
+		if (preg_match('/^(?:DELETE|UPDATE|INSERT)/i', $this->_statement->queryString)) {
+			$changes = $this->_driver->prepare('SELECT CHANGES()');
+			$changes->execute();
+			$count = $changes->fetch()[0];
+			$changes->closeCursor();
+			return $count;
 		}
+		return parent::rowCount();
 	}
 
 }
+
+
