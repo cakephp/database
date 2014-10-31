@@ -12,15 +12,29 @@
  * @since         3.0.0
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
-namespace Cake\Database\Exception;
-
-use Cake\Core\Exception\Exception;
-
-class MissingExtensionException extends \Cake\Core\Exception\Exception {
+namespace Cake\Database\Expression;
 
 /**
- * {@inheritDoc}
+ * Describes a getter and a setter for the a field property. Useful for expressions
+ * that contain an identifier to compare against.
+ *
+ * @internal
  */
-	protected $_messageTemplate = 'Database driver %s cannot be used due to a missing PHP extension or unmet dependency';
+interface FieldInterface {
+
+/**
+ * Sets the field name
+ *
+ * @param string $field The field to compare with.
+ * @return void
+ */
+	public function field($field);
+
+/**
+ * Returns the field name
+ *
+ * @return string|\Cake\Database\ExpressionInterface
+ */
+	public function getField();
 
 }

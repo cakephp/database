@@ -12,29 +12,42 @@
  * @since         3.0.0
  * @license       http://www.opensource.org/licenses/mit-license.php MIT License
  */
-namespace Cake\Database\Statement;
+namespace Cake\Database\Expression;
+
+use Cake\Database\ExpressionInterface;
+use Cake\Database\ValueBinder;
 
 /**
- * Statement class meant to be used by an Sqlite driver
+ * Contains the field property with a getter and a setter for it
  *
  * @internal
  */
-class SqliteStatement extends BufferedStatement {
+trait FieldTrait {
 
 /**
- * Returns the number of rows returned of affected by last execution
+ * The field name or expression to be used in the left hand side of the operator
  *
- * @return int
+ * @var string
  */
-	public function rowCount() {
-		if (preg_match('/^(?:DELETE|UPDATE|INSERT)/i', $this->_statement->queryString)) {
-			$changes = $this->_driver->prepare('SELECT CHANGES()');
-			$changes->execute();
-			$count = $changes->fetch()[0];
-			$changes->closeCursor();
-			return $count;
-		}
-		return parent::rowCount();
+	protected $_field;
+
+/**
+ * Sets the field name
+ *
+ * @param string $field The field to compare with.
+ * @return void
+ */
+	public function field($field) {
+		$this->_field = $field;
+	}
+
+/**
+ * Returns the field name
+ *
+ * @return string|\Cake\Database\ExpressionInterface
+ */
+	public function getField() {
+		return $this->_field;
 	}
 
 }
