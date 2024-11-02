@@ -192,6 +192,11 @@ class Sqlserver extends Driver
      */
     public function prepare(Query|string $query): StatementInterface
     {
+        $options = [
+            PDO::ATTR_CURSOR => PDO::CURSOR_SCROLL,
+            PDO::SQLSRV_ATTR_CURSOR_SCROLL_TYPE => PDO::SQLSRV_CURSOR_BUFFERED,
+        ];
+
         $sql = $query;
         if ($query instanceof Query) {
             $sql = $query->sql();
@@ -203,15 +208,16 @@ class Sqlserver extends Driver
                     'If using an Association, try changing the `strategy` from select to subquery.'
                 );
             }
+
+            if ($query instanceof SelectQuery && !$query->isBufferedResultsEnabled()) {
+                $options = [];
+            }
         }
 
         /** @var string $sql */
         $statement = $this->getPdo()->prepare(
             $sql,
-            [
-                PDO::ATTR_CURSOR => PDO::CURSOR_SCROLL,
-                PDO::SQLSRV_ATTR_CURSOR_SCROLL_TYPE => PDO::SQLSRV_CURSOR_BUFFERED,
-            ]
+            $options
         );
 
         /** @var \Cake\Database\StatementInterface */
