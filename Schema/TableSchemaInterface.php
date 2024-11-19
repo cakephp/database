@@ -235,7 +235,7 @@ interface TableSchemaInterface extends SchemaInterface
     /**
      * Get the column(s) used for the primary key.
      *
-     * @return list<string> Column name(s) for the primary key. An
+     * @return array<string> Column name(s) for the primary key. An
      *   empty list will be returned when the table has no primary key.
      */
     public function getPrimaryKey(): array;
@@ -270,7 +270,7 @@ interface TableSchemaInterface extends SchemaInterface
     /**
      * Get the names of all the indexes in the table.
      *
-     * @return list<string>
+     * @return array<string>
      */
     public function indexes(): array;
 
@@ -317,7 +317,7 @@ interface TableSchemaInterface extends SchemaInterface
     /**
      * Get the names of all the constraints in the table.
      *
-     * @return list<string>
+     * @return array<string>
      */
     public function constraints(): array;
 }

@@ -277,7 +277,7 @@ abstract class SchemaDialect
      * @param array<string> $columns The columns to go inside the table.
      * @param array<string> $constraints The constraints for the table.
      * @param array<string> $indexes The indexes for the table.
-     * @return list<string> SQL statements to create a table.
+     * @return array<string> SQL statements to create a table.
      */
     abstract public function createTableSql(
         TableSchema $schema,
