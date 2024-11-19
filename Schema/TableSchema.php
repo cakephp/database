@@ -199,7 +199,7 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
     /**
      * Names of the valid index types.
      *
-     * @var list<string>
+     * @var array<string>
      */
     protected static array $_validIndexTypes = [
         self::INDEX_INDEX,
@@ -209,7 +209,7 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
     /**
      * Names of the valid constraint types.
      *
-     * @var list<string>
+     * @var array<string>
      */
     protected static array $_validConstraintTypes = [
         self::CONSTRAINT_PRIMARY,
@@ -220,7 +220,7 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
     /**
      * Names of the valid foreign key actions.
      *
-     * @var list<string>
+     * @var array<string>
      */
     protected static array $_validForeignKeyActions = [
         self::ACTION_CASCADE,

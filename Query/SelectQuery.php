@@ -75,7 +75,7 @@ class SelectQuery extends Query implements IteratorAggregate
      * statement upon retrieval. Each one of the callback function will receive
      * the row array as first argument.
      *
-     * @var list<\Closure>
+     * @var array<\Closure>
      */
     protected array $_resultDecorators = [];
 
