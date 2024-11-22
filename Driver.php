@@ -35,7 +35,6 @@ use Cake\Database\Schema\SchemaDialect;
 use Cake\Database\Schema\TableSchema;
 use Cake\Database\Schema\TableSchemaInterface;
 use Cake\Database\Statement\Statement;
-use Closure;
 use InvalidArgumentException;
 use PDO;
 use PDOException;
@@ -416,7 +415,7 @@ abstract class Driver
             $decorators = $query->getResultDecorators();
             if ($query->isResultsCastingEnabled()) {
                 $typeConverter = new FieldTypeConverter($query->getSelectTypeMap(), $this);
-                array_unshift($decorators, Closure::fromCallable($typeConverter));
+                array_unshift($decorators, $typeConverter(...));
             }
 
             return $decorators;
