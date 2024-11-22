@@ -112,7 +112,7 @@ class Connection implements ConnectionInterface
      *
      * ### Available options:
      *
-     * - `driver` Sort name or FCQN for driver.
+     * - `driver` Sort name or FQCN for driver.
      * - `log` Boolean indicating whether to use query logging.
      * - `name` Connection name.
      * - `cacheMetaData` Boolean indicating whether metadata (datasource schemas) should be cached.
