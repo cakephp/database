@@ -24,10 +24,10 @@
         "source": "https://github.com/cakephp/database"
     },
     "require": {
-        "php": ">=8.1",
-        "cakephp/core": "^5.1",
+        "php": ">=8.4",
+        "cakephp/core": "6.x-dev",
         "cakephp/chronos": "^3.1",
-        "cakephp/datasource": "^5.1",
+        "cakephp/datasource": "6.x-dev",
         "psr/log": "^3.0"
     },
     "suggest": {
@@ -40,7 +40,9 @@
         }
     },
     "require-dev": {
-        "cakephp/i18n": "^5.1",
-        "cakephp/log": "^5.1"
-    }
+        "cakephp/i18n": "6.x-dev",
+        "cakephp/log": "6.x-dev"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
