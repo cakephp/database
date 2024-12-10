@@ -269,6 +269,9 @@ abstract class Query implements ExpressionInterface, Stringable
      * values when the query is executed, hence it is most suitable to use with
      * prepared statements.
      *
+     * To get the fully rendered query with the placeholders replaced with the actual
+     * values, `(string)$query` should be used, instead.
+     *
      * @param \Cake\Database\ValueBinder|null $binder Value binder that generates parameter placeholders
      * @return string
      */
