@@ -330,7 +330,7 @@ class SelectQuery extends Query implements IteratorAggregate
                 $t = ['table' => $t, 'conditions' => $this->newExpr()];
             }
 
-            if (!is_string($t['conditions']) && $t['conditions'] instanceof Closure) {
+            if ($t['conditions'] instanceof Closure) {
                 $t['conditions'] = $t['conditions']($this->newExpr(), $this);
             }
 
