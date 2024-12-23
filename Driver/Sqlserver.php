@@ -18,6 +18,7 @@ namespace Cake\Database\Driver;
 
 use Cake\Database\Driver;
 use Cake\Database\DriverFeatureEnum;
+use Cake\Database\Exception\DatabaseException;
 use Cake\Database\Expression\FunctionExpression;
 use Cake\Database\Expression\OrderByExpression;
 use Cake\Database\Expression\OrderClauseExpression;
@@ -63,9 +64,9 @@ class Sqlserver extends Driver
      */
     protected array $_baseConfig = [
         'host' => 'localhost\SQLEXPRESS',
-        'username' => '',
-        'password' => '',
-        'database' => 'cake',
+        'username' => null,
+        'password' => null,
+        'database' => null,
         'port' => '',
         // PDO::SQLSRV_ENCODING_UTF8
         'encoding' => 65001,
@@ -119,6 +120,10 @@ class Sqlserver extends Driver
                 'Config setting "persistent" cannot be set to true, '
                 . 'as the Sqlserver PDO driver does not support PDO::ATTR_PERSISTENT',
             );
+        }
+
+        if (empty($config['database'])) {
+            throw new DatabaseException('Missing "database" name to connect to.');
         }
 
         $config['flags'] += [
