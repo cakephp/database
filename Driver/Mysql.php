@@ -18,6 +18,7 @@ namespace Cake\Database\Driver;
 
 use Cake\Database\Driver;
 use Cake\Database\DriverFeatureEnum;
+use Cake\Database\Exception\DatabaseException;
 use Cake\Database\Query;
 use Cake\Database\Query\SelectQuery;
 use Cake\Database\Schema\MysqlSchemaDialect;
@@ -54,9 +55,9 @@ class Mysql extends Driver
     protected array $_baseConfig = [
         'persistent' => true,
         'host' => 'localhost',
-        'username' => 'root',
-        'password' => '',
-        'database' => 'cake',
+        'username' => null,
+        'password' => null,
+        'database' => null,
         'port' => '3306',
         'flags' => [],
         'encoding' => 'utf8mb4',
@@ -119,6 +120,10 @@ class Mysql extends Driver
             return;
         }
         $config = $this->_config;
+
+        if (empty($config['database'])) {
+            throw new DatabaseException('Missing "database" name to connect to.');
+        }
 
         if ($config['timezone'] === 'UTC') {
             $config['timezone'] = '+0:00';
