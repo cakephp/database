@@ -25,23 +25,23 @@
     },
     "require": {
         "php": ">=8.4",
-        "cakephp/core": "6.x-dev",
+        "cakephp/core": "^6.0",
         "cakephp/chronos": "^3.1",
-        "cakephp/datasource": "6.x-dev",
+        "cakephp/datasource": "^6.0",
         "psr/log": "^3.0"
     },
-    "suggest": {
-        "cakephp/i18n": "If you are using locale-aware datetime formats.",
-        "cakephp/log": "If you want to use query logging without providing a logger yourself."
+    "require-dev": {
+        "cakephp/i18n": "^6.0",
+        "cakephp/log": "^6.0"
     },
     "autoload": {
         "psr-4": {
             "Cake\\Database\\": "."
         }
     },
-    "require-dev": {
-        "cakephp/i18n": "6.x-dev",
-        "cakephp/log": "6.x-dev"
+    "suggest": {
+        "cakephp/i18n": "If you are using locale-aware datetime formats.",
+        "cakephp/log": "If you want to use query logging without providing a logger yourself."
     },
     "minimum-stability": "dev",
     "prefer-stable": true
