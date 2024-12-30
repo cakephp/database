@@ -438,6 +438,7 @@ class SqlserverSchemaDialect extends SchemaDialect
             TableSchemaInterface::TYPE_TIMESTAMP_FRACTIONAL => ' DATETIME2',
             TableSchemaInterface::TYPE_TIMESTAMP_TIMEZONE => ' DATETIME2',
             TableSchemaInterface::TYPE_UUID => ' UNIQUEIDENTIFIER',
+            TableSchemaInterface::TYPE_NATIVE_UUID => ' UNIQUEIDENTIFIER',
             TableSchemaInterface::TYPE_JSON => ' NVARCHAR(MAX)',
             TableSchemaInterface::TYPE_GEOMETRY => ' GEOMETRY',
             TableSchemaInterface::TYPE_POINT => ' GEOGRAPHY',
