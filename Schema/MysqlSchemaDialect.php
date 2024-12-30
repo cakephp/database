@@ -172,6 +172,9 @@ class MysqlSchemaDialect extends SchemaDialect
         if ($col === 'binary' && $length === 16) {
             return ['type' => TableSchemaInterface::TYPE_BINARY_UUID, 'length' => null];
         }
+        if ($col === 'uuid') {
+            return ['type' => TableSchemaInterface::TYPE_NATIVE_UUID, 'length' => null];
+        }
         if (str_contains($col, 'blob') || in_array($col, ['binary', 'varbinary'])) {
             $lengthName = substr($col, 0, -4);
             $length = TableSchema::$columnLengths[$lengthName] ?? $length;
@@ -385,6 +388,7 @@ class MysqlSchemaDialect extends SchemaDialect
             TableSchemaInterface::TYPE_TIMESTAMP_TIMEZONE => ' TIMESTAMP',
             TableSchemaInterface::TYPE_CHAR => ' CHAR',
             TableSchemaInterface::TYPE_UUID => ' CHAR(36)',
+            TableSchemaInterface::TYPE_NATIVE_UUID => ' UUID',
             TableSchemaInterface::TYPE_JSON => $nativeJson ? ' JSON' : ' LONGTEXT',
             TableSchemaInterface::TYPE_GEOMETRY => ' GEOMETRY',
             TableSchemaInterface::TYPE_POINT => ' POINT',
