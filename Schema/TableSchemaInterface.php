@@ -171,6 +171,13 @@ interface TableSchemaInterface extends SchemaInterface
     public const TYPE_UUID = 'uuid';
 
     /**
+     * Native UUID column type
+     *
+     * @var string
+     */
+    public const TYPE_NATIVE_UUID = 'nativeuuid';
+
+    /**
      * Geometry column type
      *
      * @var string
