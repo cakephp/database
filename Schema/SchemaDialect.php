@@ -21,6 +21,7 @@ use Cake\Database\Exception\DatabaseException;
 use Cake\Database\Type\ColumnSchemaAwareInterface;
 use Cake\Database\TypeFactory;
 use InvalidArgumentException;
+use PDOException;
 
 /**
  * Base class for schema implementations.
@@ -398,7 +399,11 @@ abstract class SchemaDialect
         $table = $this->_driver->newTableSchema($name);
 
         [$sql, $params] = $this->describeColumnSql($name, $config);
-        $statement = $this->_driver->execute($sql, $params);
+        try {
+            $statement = $this->_driver->execute($sql, $params);
+        } catch (PDOException $e) {
+            throw new DatabaseException($e->getMessage(), 500, $e);
+        }
         foreach ($statement->fetchAll('assoc') as $row) {
             $this->convertColumnDescription($table, $row);
         }
