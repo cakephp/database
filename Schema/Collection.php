@@ -40,7 +40,7 @@ class Collection implements CollectionInterface
      *
      * @var \Cake\Database\Schema\SchemaDialect|null
      */
-    protected ?SchemaDialect $_dialect;
+    protected ?SchemaDialect $_dialect = null;
 
     /**
      * Constructor.
@@ -166,8 +166,12 @@ class Collection implements CollectionInterface
      *
      * @return \Cake\Database\Schema\SchemaDialect
      */
-    private function getDialect(): SchemaDialect
+    protected function getDialect(): SchemaDialect
     {
-        return $this->_dialect ?? ($this->_dialect = $this->_connection->getDriver()->schemaDialect());
+        if ($this->_dialect !== null) {
+            return $this->_dialect;
+        }
+
+        return $this->_dialect = $this->_connection->getDriver()->schemaDialect();
     }
 }
