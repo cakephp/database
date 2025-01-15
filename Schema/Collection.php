@@ -168,10 +168,6 @@ class Collection implements CollectionInterface
      */
     protected function getDialect(): SchemaDialect
     {
-        if ($this->_dialect !== null) {
-            return $this->_dialect;
-        }
-
-        return $this->_dialect = $this->_connection->getDriver()->schemaDialect();
+        return $this->_dialect ??= $this->_connection->getDriver()->schemaDialect();
     }
 }
