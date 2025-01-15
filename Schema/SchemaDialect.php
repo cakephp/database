@@ -433,4 +433,32 @@ abstract class SchemaDialect
 
         return $table;
     }
+
+    /**
+     * Get a list of column metadata as a array
+     *
+     * Each item in the array will contain the following:
+     */
+    public function describeColumns(string $tableName): array
+    {
+        $config = $this->_driver->config();
+        if (str_contains($tableName, '.')) {
+            [$config['schema'], $tableName] = explode('.', $tableName);
+        }
+        /** @var \Cake\Database\Schema\TableSchema $table */
+        $table = $this->_driver->newTableSchema($tableName);
+        [$sql, $params] = $this->describeColumnSql($tableName, $config);
+        $statement = $this->_driver->execute($sql, $params);
+        foreach ($statement->fetchAll('assoc') as $row) {
+            $this->convertColumnDescription($table, $row);
+        }
+        $columns = [];
+        foreach ($table->columns() as $columnName) {
+            $column = $table->getColumn($columnName);
+            $column['name'] = $columnName;
+            $columns[] = $column;
+        }
+
+        return $columns;
+    }
 }
