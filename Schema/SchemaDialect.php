@@ -438,6 +438,16 @@ abstract class SchemaDialect
      * Get a list of column metadata as a array
      *
      * Each item in the array will contain the following:
+     *
+     * - name : the name of the column.
+     * - type : the abstract type of the column.
+     * - length : the length of the column.
+     * - default : the default value of the column or null.
+     * - null : boolean indicating whether the column can be null.
+     * - comment : the column comment or null.
+     *
+     * @param string $tableName The name of the table to describe columns on.
+     * @return array
      */
     public function describeColumns(string $tableName): array
     {
@@ -447,6 +457,7 @@ abstract class SchemaDialect
         }
         /** @var \Cake\Database\Schema\TableSchema $table */
         $table = $this->_driver->newTableSchema($tableName);
+
         [$sql, $params] = $this->describeColumnSql($tableName, $config);
         $statement = $this->_driver->execute($sql, $params);
         foreach ($statement->fetchAll('assoc') as $row) {
@@ -460,5 +471,46 @@ abstract class SchemaDialect
         }
 
         return $columns;
+    }
+
+    /**
+     * Get a list of index metadata as a array
+     *
+     * Each item in the array will contain the following:
+     *
+     * - name : the name of the index.
+     * - type : the type of the index. One of `unique`, `index`
+     * - columns : the columns in the index.
+     * - length : the length of the index if applicable.
+     *
+     * @param string $tableName The name of the table to describe indexes on.
+     * @return array
+     */
+    public function describeIndexes(string $tableName): array
+    {
+        $config = $this->_driver->config();
+        if (str_contains($tableName, '.')) {
+            [$config['schema'], $tableName] = explode('.', $tableName);
+        }
+        /** @var \Cake\Database\Schema\TableSchema $table */
+        $table = $this->_driver->newTableSchema($tableName);
+        // Add the columns because TableSchema needs them.
+        foreach ($this->describeColumns($tableName) as $column) {
+            $table->addColumn($column['name'], $column);
+        }
+
+        [$sql, $params] = $this->describeIndexSql($tableName, $config);
+        $statement = $this->_driver->execute($sql, $params);
+        foreach ($statement->fetchAll('assoc') as $row) {
+            $this->convertIndexDescription($table, $row);
+        }
+        $indexes = [];
+        foreach ($table->indexes() as $name) {
+            $index = $table->getIndex($name);
+            $index['name'] = $name;
+            $indexes[] = $index;
+        }
+
+        return $indexes;
     }
 }
