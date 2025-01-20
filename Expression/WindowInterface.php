@@ -62,15 +62,6 @@ interface WindowInterface
      *
      * @param \Cake\Database\ExpressionInterface|\Closure|array<\Cake\Database\ExpressionInterface|string>|string $fields Order expressions
      * @return $this
-     * @deprecated 5.0.0 Use orderBy() instead.
-     */
-    public function order(ExpressionInterface|Closure|array|string $fields);
-
-    /**
-     * Adds one or more order by clauses to the window.
-     *
-     * @param \Cake\Database\ExpressionInterface|\Closure|array<\Cake\Database\ExpressionInterface|string>|string $fields Order expressions
-     * @return $this
      */
     public function orderBy(ExpressionInterface|Closure|array|string $fields);
 
