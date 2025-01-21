@@ -556,4 +556,32 @@ abstract class SchemaDialect
 
         return $indexes;
     }
+
+    /**
+     * Get platform specific options
+     *
+     * No keys are guaranteed to be present as they are database driver dependent.
+     *
+     * @param string $tableName The name of the table to describe options on.
+     * @return array
+     */
+    public function describeOptions(string $tableName): array
+    {
+        $config = $this->_driver->config();
+        if (str_contains($tableName, '.')) {
+            [$config['schema'], $tableName] = explode('.', $tableName);
+        }
+        /** @var \Cake\Database\Schema\TableSchema $table */
+        $table = $this->_driver->newTableSchema($tableName);
+
+        [$sql, $params] = $this->describeOptionsSql($tableName, $config);
+        if ($sql) {
+            $statement = $this->_driver->execute($sql, $params);
+            foreach ($statement->fetchAll('assoc') as $row) {
+                $this->convertOptionsDescription($table, $row);
+            }
+        }
+
+        return $table->getOptions();
+    }
 }
