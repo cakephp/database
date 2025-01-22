@@ -29,6 +29,7 @@ use Closure;
 use InvalidArgumentException;
 use IteratorAggregate;
 use Traversable;
+use function Cake\Core\deprecationWarning;
 
 /**
  * This class is used to generate SELECT queries for the relational database.
@@ -525,6 +526,8 @@ class SelectQuery extends Query implements IteratorAggregate
      */
     public function group(ExpressionInterface|array|string $fields, bool $overwrite = false)
     {
+        deprecationWarning('5.0.0', 'SelectQuery::group() is deprecated. Use SelectQuery::groupBy() instead.');
+
         return $this->groupBy($fields, $overwrite);
     }
 

@@ -26,6 +26,7 @@ use Closure;
 use InvalidArgumentException;
 use Stringable;
 use Throwable;
+use function Cake\Core\deprecationWarning;
 
 /**
  * This class represents a Relational database SQL Query. A query can be of
@@ -1169,6 +1170,8 @@ abstract class Query implements ExpressionInterface, Stringable
      */
     public function order(ExpressionInterface|Closure|array|string $fields, bool $overwrite = false)
     {
+        deprecationWarning('5.0.0', 'Query::order() is deprecated. Use Query::orderBy() instead.');
+
         return $this->orderBy($fields, $overwrite);
     }
 
@@ -1265,6 +1268,8 @@ abstract class Query implements ExpressionInterface, Stringable
      */
     public function orderAsc(ExpressionInterface|Closure|string $field, bool $overwrite = false)
     {
+        deprecationWarning('5.0.0', 'Query::orderAsc() is deprecated. Use Query::orderByAsc() instead.');
+
         return $this->orderByAsc($field, $overwrite);
     }
 
@@ -1319,6 +1324,8 @@ abstract class Query implements ExpressionInterface, Stringable
      */
     public function orderDesc(ExpressionInterface|Closure|string $field, bool $overwrite = false)
     {
+        deprecationWarning('5.0.0', 'Query::orderDesc() is deprecated. Use Query::orderByDesc() instead.');
+
         return $this->orderByDesc($field, $overwrite);
     }
 
