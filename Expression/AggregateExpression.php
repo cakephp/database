@@ -90,14 +90,6 @@ class AggregateExpression extends FunctionExpression implements WindowInterface
     /**
      * @inheritDoc
      */
-    public function order(ExpressionInterface|Closure|array|string $fields)
-    {
-        return $this->orderBy($fields);
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function orderBy(ExpressionInterface|Closure|array|string $fields)
     {
         $this->getWindow()->orderBy($fields);

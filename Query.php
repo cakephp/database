@@ -1165,73 +1165,6 @@ abstract class Query implements ExpressionInterface, Stringable
      * @param \Cake\Database\ExpressionInterface|\Closure|array|string $fields fields to be added to the list
      * @param bool $overwrite whether to reset order with field list or not
      * @return $this
-     * @deprecated 5.0.0 Use orderBy() instead now that CollectionInterface methods are no longer proxied.
-     */
-    public function order(ExpressionInterface|Closure|array|string $fields, bool $overwrite = false)
-    {
-        return $this->orderBy($fields, $overwrite);
-    }
-
-    /**
-     * Adds a single or multiple fields to be used in the ORDER clause for this query.
-     * Fields can be passed as an array of strings, array of expression
-     * objects, a single expression or a single string.
-     *
-     * If an array is passed, keys will be used as the field itself and the value will
-     * represent the order in which such field should be ordered. When called multiple
-     * times with the same fields as key, the last order definition will prevail over
-     * the others.
-     *
-     * By default this function will append any passed argument to the list of fields
-     * to be selected, unless the second argument is set to true.
-     *
-     * ### Examples:
-     *
-     * ```
-     * $query->orderBy(['title' => 'DESC', 'author_id' => 'ASC']);
-     * ```
-     *
-     * Produces:
-     *
-     * `ORDER BY title DESC, author_id ASC`
-     *
-     * ```
-     * $query
-     *     ->orderBy(['title' => $query->newExpr('DESC NULLS FIRST')])
-     *     ->orderBy('author_id');
-     * ```
-     *
-     * Will generate:
-     *
-     * `ORDER BY title DESC NULLS FIRST, author_id`
-     *
-     * ```
-     * $expression = $query->newExpr()->add(['id % 2 = 0']);
-     * $query->orderBy($expression)->orderBy(['title' => 'ASC']);
-     * ```
-     *
-     * and
-     *
-     * ```
-     * $query->orderBy(function ($exp, $query) {
-     *     return [$exp->add(['id % 2 = 0']), 'title' => 'ASC'];
-     * });
-     * ```
-     *
-     * Will both become:
-     *
-     * `ORDER BY (id %2 = 0), title ASC`
-     *
-     * Order fields/directions are not sanitized by the query builder.
-     * You should use an allowed list of fields/directions when passing
-     * in user-supplied data to `order()`.
-     *
-     * If you need to set complex expressions as order conditions, you
-     * should use `orderByAsc()` or `orderByDesc()`.
-     *
-     * @param \Cake\Database\ExpressionInterface|\Closure|array|string $fields fields to be added to the list
-     * @param bool $overwrite whether to reset order with field list or not
-     * @return $this
      */
     public function orderBy(ExpressionInterface|Closure|array|string $fields, bool $overwrite = false)
     {
@@ -1247,25 +1180,6 @@ abstract class Query implements ExpressionInterface, Stringable
         $this->_conjugate('order', $fields, '', []);
 
         return $this;
-    }
-
-    /**
-     * Add an ORDER BY clause with an ASC direction.
-     *
-     * This method allows you to set complex expressions
-     * as order conditions unlike order()
-     *
-     * Order fields are not suitable for use with user supplied data as they are
-     * not sanitized by the query builder.
-     *
-     * @param \Cake\Database\ExpressionInterface|\Closure|string $field The field to order on.
-     * @param bool $overwrite Whether to reset the order clauses.
-     * @return $this
-     * @deprecated 5.0.0 Use orderByAsc() instead now that CollectionInterface methods are no longer proxied.
-     */
-    public function orderAsc(ExpressionInterface|Closure|string $field, bool $overwrite = false)
-    {
-        return $this->orderByAsc($field, $overwrite);
     }
 
     /**
@@ -1301,25 +1215,6 @@ abstract class Query implements ExpressionInterface, Stringable
         $queryExpr->add(new OrderClauseExpression($field, 'ASC'));
 
         return $this;
-    }
-
-    /**
-     * Add an ORDER BY clause with a DESC direction.
-     *
-     * This method allows you to set complex expressions
-     * as order conditions unlike order()
-     *
-     * Order fields are not suitable for use with user supplied data as they are
-     * not sanitized by the query builder.
-     *
-     * @param \Cake\Database\ExpressionInterface|\Closure|string $field The field to order on.
-     * @param bool $overwrite Whether to reset the order clauses.
-     * @return $this
-     * @deprecated 5.0.0 Use orderByDesc() instead now that CollectionInterface methods are no longer proxied.
-     */
-    public function orderDesc(ExpressionInterface|Closure|string $field, bool $overwrite = false)
-    {
-        return $this->orderByDesc($field, $overwrite);
     }
 
     /**
