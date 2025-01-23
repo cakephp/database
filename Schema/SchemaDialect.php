@@ -621,4 +621,38 @@ abstract class SchemaDialect
 
         return in_array($tableName, $tables, true);
     }
+
+    /**
+     * Check if a table has an index with a given name.
+     *
+     * @param string $tableName The name of the table
+     * @param array<string> $columns The columns in the index. Specific
+     *   ordering matters.
+     * @param string $name The name of the index to match on. Can be used alone,
+     *   or with $columns to match indexes more precisely.
+     * @return bool
+     */
+    public function hasIndex(string $tableName, array $columns = [], ?string $name = null): bool
+    {
+        try {
+            $indexes = $this->describeIndexes($tableName);
+        } catch (QueryException) {
+            return false;
+        }
+        $found = null;
+        foreach ($indexes as $index) {
+            $match = false;
+            if ($columns && $index['columns'] === $columns) {
+                $match = true;
+                $found = $index;
+                break;
+            }
+        }
+        // Both columns and name provided, both must match;
+        if ($found !== null && $name !== null && $found['name'] !== $name) {
+            return false;
+        }
+
+        return $match;
+    }
 }
