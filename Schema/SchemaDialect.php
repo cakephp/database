@@ -18,6 +18,7 @@ namespace Cake\Database\Schema;
 
 use Cake\Database\Driver;
 use Cake\Database\Exception\DatabaseException;
+use Cake\Database\Exception\QueryException;
 use Cake\Database\Type\ColumnSchemaAwareInterface;
 use Cake\Database\TypeFactory;
 use InvalidArgumentException;
@@ -583,5 +584,28 @@ abstract class SchemaDialect
         }
 
         return $table->getOptions();
+    }
+
+    /**
+     * Check if a table has a column with a given name.
+     *
+     * @param string $tableName The name of the table
+     * @param string $columnName The name of the column
+     * @return bool
+     */
+    public function hasColumn(string $tableName, string $columnName): bool
+    {
+        try {
+            $columns = $this->describeColumns($tableName);
+        } catch (QueryException) {
+            return false;
+        }
+        foreach ($columns as $column) {
+            if ($column['name'] === $columnName) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
