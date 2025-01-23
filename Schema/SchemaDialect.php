@@ -641,9 +641,11 @@ abstract class SchemaDialect
         }
         $found = null;
         foreach ($indexes as $index) {
-            $match = false;
             if ($columns && $index['columns'] === $columns) {
-                $match = true;
+                $found = $index;
+                break;
+            }
+            if ($columns === [] && $name !== null && $index['name'] === $name) {
                 $found = $index;
                 break;
             }
@@ -653,6 +655,42 @@ abstract class SchemaDialect
             return false;
         }
 
-        return $match;
+        return $found !== null;
+    }
+
+    /**
+     * Check if a table has a foreign key with a given name.
+     *
+     * @param string $tableName The name of the table
+     * @param array<string> $columns The columns in the foriegn key. Specific
+     *   ordering matters.
+     * @param string $name The name of the foreign key to match on. Can be used alone,
+     *   or with $columns to match keys more precisely.
+     * @return bool
+     */
+    public function hasForeignKey(string $tableName, array $columns = [], ?string $name = null): bool
+    {
+        try {
+            $keys = $this->describeForeignKeys($tableName);
+        } catch (QueryException) {
+            return false;
+        }
+        $found = null;
+        foreach ($keys as $key) {
+            if ($columns && $key['columns'] === $columns) {
+                $found = $key;
+                break;
+            }
+            if (!$columns && $name !== null && $key['name'] === $name) {
+                $found = $key;
+                break;
+            }
+        }
+        // Both columns and name provided, both must match;
+        if ($found !== null && $name !== null && $found['name'] !== $name) {
+            return false;
+        }
+
+        return $found !== null;
     }
 }
