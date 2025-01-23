@@ -608,4 +608,17 @@ abstract class SchemaDialect
 
         return false;
     }
+
+    /**
+     * Check if a table exists
+     *
+     * @param string $tableName The name of the table
+     * @return bool
+     */
+    public function hasTable(string $tableName): bool
+    {
+        $tables = $this->listTables();
+
+        return in_array($tableName, $tables, true);
+    }
 }
