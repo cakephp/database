@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace Cake\Database\Schema;
 
 use Cake\Database\Exception\DatabaseException;
+use PDO;
 
 /**
  * Schema management/reflection features for Sqlite
@@ -362,7 +363,7 @@ class SqliteSchemaDialect extends SchemaDialect
         $statement = $this->_driver->prepare($sql);
         $statement->execute();
         $columns = [];
-        foreach ($statement->fetchAll('assoc') as $column) {
+        foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $column) {
             $columns[] = $column['name'];
         }
         if ($row['unique']) {
@@ -441,7 +442,7 @@ class SqliteSchemaDialect extends SchemaDialect
         ];
 
         $foreignKey = null;
-        foreach ($statement->fetchAll('assoc') as $foreignKey) {
+        foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $foreignKey) {
             $data['columns'][] = $foreignKey['from'];
             $data['references'][] = $foreignKey['to'];
         }
