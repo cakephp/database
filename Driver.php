@@ -760,7 +760,7 @@ abstract class Driver
      *
      * This method should only be used for queries that do not support placeholders.
      *
-     * @param string $identifier The identifier to quote.
+     * @param string $value The value to quote.
      * @return string
      */
     public function quote(string $value): string
