@@ -18,6 +18,7 @@ namespace Cake\Database\Schema;
 
 use Cake\Database\Driver;
 use Cake\Database\Exception\DatabaseException;
+use Cake\Database\Exception\QueryException;
 use Cake\Database\Type\ColumnSchemaAwareInterface;
 use Cake\Database\TypeFactory;
 use InvalidArgumentException;
@@ -583,5 +584,113 @@ abstract class SchemaDialect
         }
 
         return $table->getOptions();
+    }
+
+    /**
+     * Check if a table has a column with a given name.
+     *
+     * @param string $tableName The name of the table
+     * @param string $columnName The name of the column
+     * @return bool
+     */
+    public function hasColumn(string $tableName, string $columnName): bool
+    {
+        try {
+            $columns = $this->describeColumns($tableName);
+        } catch (QueryException) {
+            return false;
+        }
+        foreach ($columns as $column) {
+            if ($column['name'] === $columnName) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if a table exists
+     *
+     * @param string $tableName The name of the table
+     * @return bool
+     */
+    public function hasTable(string $tableName): bool
+    {
+        $tables = $this->listTables();
+
+        return in_array($tableName, $tables, true);
+    }
+
+    /**
+     * Check if a table has an index with a given name.
+     *
+     * @param string $tableName The name of the table
+     * @param array<string> $columns The columns in the index. Specific
+     *   ordering matters.
+     * @param string $name The name of the index to match on. Can be used alone,
+     *   or with $columns to match indexes more precisely.
+     * @return bool
+     */
+    public function hasIndex(string $tableName, array $columns = [], ?string $name = null): bool
+    {
+        try {
+            $indexes = $this->describeIndexes($tableName);
+        } catch (QueryException) {
+            return false;
+        }
+        $found = null;
+        foreach ($indexes as $index) {
+            if ($columns && $index['columns'] === $columns) {
+                $found = $index;
+                break;
+            }
+            if ($columns === [] && $name !== null && $index['name'] === $name) {
+                $found = $index;
+                break;
+            }
+        }
+        // Both columns and name provided, both must match;
+        if ($found !== null && $name !== null && $found['name'] !== $name) {
+            return false;
+        }
+
+        return $found !== null;
+    }
+
+    /**
+     * Check if a table has a foreign key with a given name.
+     *
+     * @param string $tableName The name of the table
+     * @param array<string> $columns The columns in the foriegn key. Specific
+     *   ordering matters.
+     * @param string $name The name of the foreign key to match on. Can be used alone,
+     *   or with $columns to match keys more precisely.
+     * @return bool
+     */
+    public function hasForeignKey(string $tableName, array $columns = [], ?string $name = null): bool
+    {
+        try {
+            $keys = $this->describeForeignKeys($tableName);
+        } catch (QueryException) {
+            return false;
+        }
+        $found = null;
+        foreach ($keys as $key) {
+            if ($columns && $key['columns'] === $columns) {
+                $found = $key;
+                break;
+            }
+            if (!$columns && $name !== null && $key['name'] === $name) {
+                $found = $key;
+                break;
+            }
+        }
+        // Both columns and name provided, both must match;
+        if ($found !== null && $name !== null && $found['name'] !== $name) {
+            return false;
+        }
+
+        return $found !== null;
     }
 }
