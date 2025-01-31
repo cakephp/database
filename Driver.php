@@ -750,6 +750,25 @@ abstract class Driver
     }
 
     /**
+     * Quotes a database value.
+     *
+     * This makes values safe for concatenation in SQL queries.
+     *
+     * Using this method **is not** recommended. You should use `execute()`
+     * instead, as it uses prepared statements which are safer than
+     * string concatenation.
+     *
+     * This method should only be used for queries that do not support placeholders.
+     *
+     * @param string $identifier The identifier to quote.
+     * @return string
+     */
+    public function quote(string $value): string
+    {
+        return $this->getPdo()->quote($value);
+    }
+
+    /**
      * Get identifier quoter instance.
      *
      * @return \Cake\Database\IdentifierQuoter
