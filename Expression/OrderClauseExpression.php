@@ -66,7 +66,7 @@ class OrderClauseExpression implements ExpressionInterface, FieldInterface
     /**
      * @inheritDoc
      */
-    public function traverse(Closure $callback)
+    public function traverse(Closure $callback): static
     {
         if ($this->_field instanceof ExpressionInterface) {
             $callback($this->_field);
@@ -81,7 +81,7 @@ class OrderClauseExpression implements ExpressionInterface, FieldInterface
      *
      * @return void
      */
-    public function __clone()
+    public function __clone(): void
     {
         if ($this->_field instanceof ExpressionInterface) {
             $this->_field = clone $this->_field;

@@ -34,5 +34,5 @@ interface TypedResultInterface
      * @param string $type The type name to use.
      * @return $this
      */
-    public function setReturnType(string $type);
+    public function setReturnType(string $type): static;
 }

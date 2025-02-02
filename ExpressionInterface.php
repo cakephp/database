@@ -40,5 +40,5 @@ interface ExpressionInterface
      * @param \Closure $callback The callback to run for all nodes.
      * @return $this
      */
-    public function traverse(Closure $callback);
+    public function traverse(Closure $callback): static;
 }

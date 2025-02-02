@@ -169,7 +169,7 @@ abstract class Query implements ExpressionInterface, Stringable
      * @param \Cake\Database\Connection $connection Connection instance
      * @return $this
      */
-    public function setConnection(Connection $connection)
+    public function setConnection(Connection $connection): static
     {
         $this->_dirty();
         $this->_connection = $connection;
@@ -306,7 +306,7 @@ abstract class Query implements ExpressionInterface, Stringable
      * @param \Closure $callback Callback to be executed for each part
      * @return $this
      */
-    public function traverse(Closure $callback)
+    public function traverse(Closure $callback): static
     {
         foreach ($this->_parts as $name => $part) {
             $callback($part, $name);
@@ -339,7 +339,7 @@ abstract class Query implements ExpressionInterface, Stringable
      * @param array<string> $parts The list of query parts to traverse
      * @return $this
      */
-    public function traverseParts(Closure $visitor, array $parts)
+    public function traverseParts(Closure $visitor, array $parts): static
     {
         foreach ($parts as $name) {
             $visitor($this->_parts[$name], $name);
@@ -390,7 +390,7 @@ abstract class Query implements ExpressionInterface, Stringable
      * @param bool $overwrite Whether to reset the list of CTEs.
      * @return $this
      */
-    public function with(CommonTableExpression|Closure $cte, bool $overwrite = false)
+    public function with(CommonTableExpression|Closure $cte, bool $overwrite = false): static
     {
         if ($overwrite) {
             $this->_parts['with'] = [];
@@ -434,7 +434,7 @@ abstract class Query implements ExpressionInterface, Stringable
      * @param bool $overwrite whether to reset order with field list or not
      * @return $this
      */
-    public function modifier(ExpressionInterface|array|string $modifiers, bool $overwrite = false)
+    public function modifier(ExpressionInterface|array|string $modifiers, bool $overwrite = false): static
     {
         $this->_dirty();
         if ($overwrite) {
@@ -477,7 +477,7 @@ abstract class Query implements ExpressionInterface, Stringable
      * @param bool $overwrite whether to reset tables with passed list or not
      * @return $this
      */
-    public function from(array|string $tables = [], bool $overwrite = false)
+    public function from(array|string $tables = [], bool $overwrite = false): static
     {
         $tables = (array)$tables;
 
@@ -578,7 +578,7 @@ abstract class Query implements ExpressionInterface, Stringable
      * @see \Cake\Database\TypeFactory
      * @return $this
      */
-    public function join(array|string $tables, array $types = [], bool $overwrite = false)
+    public function join(array|string $tables, array $types = [], bool $overwrite = false): static
     {
         if (is_string($tables) || isset($tables['table'])) {
             $tables = [$tables];
@@ -622,7 +622,7 @@ abstract class Query implements ExpressionInterface, Stringable
      * @param string $name The alias/name of the join to remove.
      * @return $this
      */
-    public function removeJoin(string $name)
+    public function removeJoin(string $name): static
     {
         unset($this->_parts['join'][$name]);
         $this->_dirty();
@@ -671,7 +671,7 @@ abstract class Query implements ExpressionInterface, Stringable
         array|string $table,
         ExpressionInterface|Closure|array|string $conditions = [],
         array $types = [],
-    ) {
+    ): static {
         $this->join($this->_makeJoin($table, $conditions, static::JOIN_TYPE_LEFT), $types);
 
         return $this;
@@ -696,7 +696,7 @@ abstract class Query implements ExpressionInterface, Stringable
         array|string $table,
         ExpressionInterface|Closure|array|string $conditions = [],
         array $types = [],
-    ) {
+    ): static {
         $this->join($this->_makeJoin($table, $conditions, static::JOIN_TYPE_RIGHT), $types);
 
         return $this;
@@ -721,7 +721,7 @@ abstract class Query implements ExpressionInterface, Stringable
         array|string $table,
         ExpressionInterface|Closure|array|string $conditions = [],
         array $types = [],
-    ) {
+    ): static {
         $this->join($this->_makeJoin($table, $conditions, static::JOIN_TYPE_INNER), $types);
 
         return $this;
@@ -897,7 +897,7 @@ abstract class Query implements ExpressionInterface, Stringable
         ExpressionInterface|Closure|array|string|null $conditions = null,
         array $types = [],
         bool $overwrite = false,
-    ) {
+    ): static {
         if ($overwrite) {
             $this->_parts['where'] = $this->newExpr();
         }
@@ -913,7 +913,7 @@ abstract class Query implements ExpressionInterface, Stringable
      *  that should be not null.
      * @return $this
      */
-    public function whereNotNull(ExpressionInterface|array|string $fields)
+    public function whereNotNull(ExpressionInterface|array|string $fields): static
     {
         if (!is_array($fields)) {
             $fields = [$fields];
@@ -935,7 +935,7 @@ abstract class Query implements ExpressionInterface, Stringable
      *   that should be null.
      * @return $this
      */
-    public function whereNull(ExpressionInterface|array|string $fields)
+    public function whereNull(ExpressionInterface|array|string $fields): static
     {
         if (!is_array($fields)) {
             $fields = [$fields];
@@ -968,7 +968,7 @@ abstract class Query implements ExpressionInterface, Stringable
      * @param array<string, mixed> $options Options
      * @return $this
      */
-    public function whereInList(string $field, array $values, array $options = [])
+    public function whereInList(string $field, array $values, array $options = []): static
     {
         $options += [
             'types' => [],
@@ -995,7 +995,7 @@ abstract class Query implements ExpressionInterface, Stringable
      * @param array<string, mixed> $options Options
      * @return $this
      */
-    public function whereNotInList(string $field, array $values, array $options = [])
+    public function whereNotInList(string $field, array $values, array $options = []): static
     {
         $options += [
             'types' => [],
@@ -1023,7 +1023,7 @@ abstract class Query implements ExpressionInterface, Stringable
      * @param array<string, mixed> $options Options
      * @return $this
      */
-    public function whereNotInListOrNull(string $field, array $values, array $options = [])
+    public function whereNotInListOrNull(string $field, array $values, array $options = []): static
     {
         $options += [
             'types' => [],
@@ -1098,7 +1098,7 @@ abstract class Query implements ExpressionInterface, Stringable
      * @see \Cake\Database\TypeFactory
      * @return $this
      */
-    public function andWhere(ExpressionInterface|Closure|array|string $conditions, array $types = [])
+    public function andWhere(ExpressionInterface|Closure|array|string $conditions, array $types = []): static
     {
         $this->_conjugate('where', $conditions, 'AND', $types);
 
@@ -1166,7 +1166,7 @@ abstract class Query implements ExpressionInterface, Stringable
      * @param bool $overwrite whether to reset order with field list or not
      * @return $this
      */
-    public function orderBy(ExpressionInterface|Closure|array|string $fields, bool $overwrite = false)
+    public function orderBy(ExpressionInterface|Closure|array|string $fields, bool $overwrite = false): static
     {
         if ($overwrite) {
             $this->_parts['order'] = null;
@@ -1195,7 +1195,7 @@ abstract class Query implements ExpressionInterface, Stringable
      * @param bool $overwrite Whether to reset the order clauses.
      * @return $this
      */
-    public function orderByAsc(ExpressionInterface|Closure|string $field, bool $overwrite = false)
+    public function orderByAsc(ExpressionInterface|Closure|string $field, bool $overwrite = false): static
     {
         if ($overwrite) {
             $this->_parts['order'] = null;
@@ -1230,7 +1230,7 @@ abstract class Query implements ExpressionInterface, Stringable
      * @param bool $overwrite Whether to reset the order clauses.
      * @return $this
      */
-    public function orderByDesc(ExpressionInterface|Closure|string $field, bool $overwrite = false)
+    public function orderByDesc(ExpressionInterface|Closure|string $field, bool $overwrite = false): static
     {
         if ($overwrite) {
             $this->_parts['order'] = null;
@@ -1267,7 +1267,7 @@ abstract class Query implements ExpressionInterface, Stringable
      * @return $this
      * @throws \Cake\Core\Exception\CakeException If page number < 1.
      */
-    public function page(int $num, ?int $limit = null)
+    public function page(int $num, ?int $limit = null): static
     {
         throw new CakeException('Not implemented');
     }
@@ -1288,7 +1288,7 @@ abstract class Query implements ExpressionInterface, Stringable
      * @param \Cake\Database\ExpressionInterface|int|null $limit number of records to be returned
      * @return $this
      */
-    public function limit(ExpressionInterface|int|null $limit)
+    public function limit(ExpressionInterface|int|null $limit): static
     {
         $this->_dirty();
         $this->_parts['limit'] = $limit;
@@ -1314,7 +1314,7 @@ abstract class Query implements ExpressionInterface, Stringable
      * @param \Cake\Database\ExpressionInterface|int|null $offset number of records to be skipped
      * @return $this
      */
-    public function offset(ExpressionInterface|int|null $offset)
+    public function offset(ExpressionInterface|int|null $offset): static
     {
         $this->_dirty();
         $this->_parts['offset'] = $offset;
@@ -1360,7 +1360,7 @@ abstract class Query implements ExpressionInterface, Stringable
      * @param \Cake\Database\ExpressionInterface|string|null $expression The expression to be appended
      * @return $this
      */
-    public function epilog(ExpressionInterface|string|null $expression = null)
+    public function epilog(ExpressionInterface|string|null $expression = null): static
     {
         $this->_dirty();
         $this->_parts['epilog'] = $expression;
@@ -1381,7 +1381,7 @@ abstract class Query implements ExpressionInterface, Stringable
      * @param string|null $expression The comment to be added
      * @return $this
      */
-    public function comment(?string $expression = null)
+    public function comment(?string $expression = null): static
     {
         $this->_dirty();
         $this->_parts['comment'] = $expression;
@@ -1528,7 +1528,7 @@ abstract class Query implements ExpressionInterface, Stringable
      *   found inside this query.
      * @return $this
      */
-    public function traverseExpressions(Closure $callback)
+    public function traverseExpressions(Closure $callback): static
     {
         foreach ($this->_parts as $part) {
             $this->_expressionsVisitor($part, $callback);
@@ -1579,7 +1579,7 @@ abstract class Query implements ExpressionInterface, Stringable
      *   to database
      * @return $this
      */
-    public function bind(string|int $param, mixed $value, string|int|null $type = null)
+    public function bind(string|int $param, mixed $value, string|int|null $type = null): static
     {
         $this->getValueBinder()->bind($param, $value, $type);
 
@@ -1610,7 +1610,7 @@ abstract class Query implements ExpressionInterface, Stringable
      * @param \Cake\Database\ValueBinder|null $binder The binder or null to disable binding.
      * @return $this
      */
-    public function setValueBinder(?ValueBinder $binder)
+    public function setValueBinder(?ValueBinder $binder): static
     {
         $this->_valueBinder = $binder;
 

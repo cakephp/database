@@ -55,7 +55,7 @@ interface WindowInterface
      * @param \Cake\Database\ExpressionInterface|\Closure|array<\Cake\Database\ExpressionInterface|string>|string $partitions Partition expressions
      * @return $this
      */
-    public function partition(ExpressionInterface|Closure|array|string $partitions);
+    public function partition(ExpressionInterface|Closure|array|string $partitions): static;
 
     /**
      * Adds one or more order by clauses to the window.
@@ -63,7 +63,7 @@ interface WindowInterface
      * @param \Cake\Database\ExpressionInterface|\Closure|array<\Cake\Database\ExpressionInterface|string>|string $fields Order expressions
      * @return $this
      */
-    public function orderBy(ExpressionInterface|Closure|array|string $fields);
+    public function orderBy(ExpressionInterface|Closure|array|string $fields): static;
 
     /**
      * Adds a simple range frame to the window.
@@ -86,7 +86,10 @@ interface WindowInterface
      *  If not passed in, only frame start SQL will be generated.
      * @return $this
      */
-    public function range(ExpressionInterface|string|int|null $start, ExpressionInterface|string|int|null $end = 0);
+    public function range(
+        ExpressionInterface|string|int|null $start,
+        ExpressionInterface|string|int|null $end = 0
+    ): static;
 
     /**
      * Adds a simple rows frame to the window.
@@ -98,7 +101,7 @@ interface WindowInterface
      *  If not passed in, only frame start SQL will be generated.
      * @return $this
      */
-    public function rows(?int $start, ?int $end = 0);
+    public function rows(?int $start, ?int $end = 0): static;
 
     /**
      * Adds a simple groups frame to the window.
@@ -110,7 +113,7 @@ interface WindowInterface
      *  If not passed in, only frame start SQL will be generated.
      * @return $this
      */
-    public function groups(?int $start, ?int $end = 0);
+    public function groups(?int $start, ?int $end = 0): static;
 
     /**
      * Adds a frame to the window.
@@ -141,26 +144,26 @@ interface WindowInterface
         string $startDirection,
         ExpressionInterface|string|int|null $endOffset,
         string $endDirection,
-    );
+    ): static;
 
     /**
      * Adds current row frame exclusion.
      *
      * @return $this
      */
-    public function excludeCurrent();
+    public function excludeCurrent(): static;
 
     /**
      * Adds group frame exclusion.
      *
      * @return $this
      */
-    public function excludeGroup();
+    public function excludeGroup(): static;
 
     /**
      * Adds ties frame exclusion.
      *
      * @return $this
      */
-    public function excludeTies();
+    public function excludeTies(): static;
 }

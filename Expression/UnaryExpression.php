@@ -94,7 +94,7 @@ class UnaryExpression implements ExpressionInterface
     /**
      * @inheritDoc
      */
-    public function traverse(Closure $callback)
+    public function traverse(Closure $callback): static
     {
         if ($this->_value instanceof ExpressionInterface) {
             $callback($this->_value);
@@ -109,7 +109,7 @@ class UnaryExpression implements ExpressionInterface
      *
      * @return void
      */
-    public function __clone()
+    public function __clone(): void
     {
         if ($this->_value instanceof ExpressionInterface) {
             $this->_value = clone $this->_value;

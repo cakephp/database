@@ -44,7 +44,7 @@ trait TypedResultTrait
      * @param string $type The name of the type that is to be returned
      * @return $this
      */
-    public function setReturnType(string $type)
+    public function setReturnType(string $type): static
     {
         $this->_returnType = $type;
 
