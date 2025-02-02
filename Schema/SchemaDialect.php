@@ -196,6 +196,7 @@ abstract class SchemaDialect
      * @param array<string, mixed> $config The connection configuration to use for
      *    getting tables from.
      * @return array An array of (sql, params) to execute.
+     * @deprecated 5.2.0 Use `listTables()` instead.
      */
     abstract public function listTablesSql(array $config): array;
 
@@ -205,6 +206,7 @@ abstract class SchemaDialect
      * @param string $tableName The table name to get information on.
      * @param array<string, mixed> $config The connection configuration.
      * @return array An array of (sql, params) to execute.
+     * @deprecated 5.2.0 Use `describeColumns()` instead.
      */
     abstract public function describeColumnSql(string $tableName, array $config): array;
 
@@ -214,6 +216,7 @@ abstract class SchemaDialect
      * @param string $tableName The table name to get information on.
      * @param array<string, mixed> $config The connection configuration.
      * @return array An array of (sql, params) to execute.
+     * @deprecated 5.2.0 Use `describeIndexes()` instead.
      */
     abstract public function describeIndexSql(string $tableName, array $config): array;
 
@@ -223,6 +226,7 @@ abstract class SchemaDialect
      * @param string $tableName The table name to get information on.
      * @param array<string, mixed> $config The connection configuration.
      * @return array An array of (sql, params) to execute.
+     * @deprecated 5.2.0 Use `describeForeignKeys()` instead.
      */
     abstract public function describeForeignKeySql(string $tableName, array $config): array;
 
@@ -232,6 +236,7 @@ abstract class SchemaDialect
      * @param string $tableName Table name.
      * @param array<string, mixed> $config The connection configuration.
      * @return array SQL statements to get options for a table.
+     * @deprecated 5.2.0 Use `describeOptions()` instead.
      */
     public function describeOptionsSql(string $tableName, array $config): array
     {
@@ -244,6 +249,7 @@ abstract class SchemaDialect
      * @param \Cake\Database\Schema\TableSchema $schema The table object to append fields to.
      * @param array $row The row data from `describeColumnSql`.
      * @return void
+     * @deprecated 5.2.0 Use `describeColumns()` instead.
      */
     abstract public function convertColumnDescription(TableSchema $schema, array $row): void;
 
@@ -254,6 +260,7 @@ abstract class SchemaDialect
      *    an index or constraint to.
      * @param array $row The row data from `describeIndexSql`.
      * @return void
+     * @deprecated 5.2.0 Use `describeIndexes()` instead.
      */
     abstract public function convertIndexDescription(TableSchema $schema, array $row): void;
 
@@ -264,6 +271,7 @@ abstract class SchemaDialect
      *    a constraint to.
      * @param array $row The row data from `describeForeignKeySql`.
      * @return void
+     * @deprecated 5.2.0 Use `describeForeignKeys()` instead.
      */
     abstract public function convertForeignKeyDescription(TableSchema $schema, array $row): void;
 
@@ -273,6 +281,7 @@ abstract class SchemaDialect
      * @param \Cake\Database\Schema\TableSchema $schema Table instance.
      * @param array $row The row of data.
      * @return void
+     * @deprecated 5.2.0 Use `describeOptions()` instead.
      */
     public function convertOptionsDescription(TableSchema $schema, array $row): void
     {
@@ -523,7 +532,7 @@ abstract class SchemaDialect
      * Each item in the array will contain the following:
      *
      * - name : the name of the index.
-     * - type : the type of the index. One of `unique`, `index`
+     * - type : the type of the index. One of `unique`, `index`, `primary`.
      * - columns : the columns in the index.
      * - length : the length of the index if applicable.
      *
