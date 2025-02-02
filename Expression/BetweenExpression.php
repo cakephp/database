@@ -101,7 +101,7 @@ class BetweenExpression implements ExpressionInterface, FieldInterface
     /**
      * @inheritDoc
      */
-    public function traverse(Closure $callback)
+    public function traverse(Closure $callback): static
     {
         foreach ([$this->_field, $this->_from, $this->_to] as $part) {
             if ($part instanceof ExpressionInterface) {
@@ -133,7 +133,7 @@ class BetweenExpression implements ExpressionInterface, FieldInterface
      *
      * @return void
      */
-    public function __clone()
+    public function __clone(): void
     {
         foreach (['_field', '_from', '_to'] as $part) {
             if ($this->{$part} instanceof ExpressionInterface) {

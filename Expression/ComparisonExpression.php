@@ -166,7 +166,7 @@ class ComparisonExpression implements ExpressionInterface, FieldInterface
     /**
      * @inheritDoc
      */
-    public function traverse(Closure $callback)
+    public function traverse(Closure $callback): static
     {
         if ($this->_field instanceof ExpressionInterface) {
             $callback($this->_field);
@@ -193,7 +193,7 @@ class ComparisonExpression implements ExpressionInterface, FieldInterface
      *
      * @return void
      */
-    public function __clone()
+    public function __clone(): void
     {
         foreach (['_value', '_field'] as $prop) {
             if ($this->{$prop} instanceof ExpressionInterface) {

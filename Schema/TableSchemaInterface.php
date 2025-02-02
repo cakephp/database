@@ -230,7 +230,7 @@ interface TableSchemaInterface extends SchemaInterface
      * @param bool $temporary Whether the table is to be temporary.
      * @return $this
      */
-    public function setTemporary(bool $temporary);
+    public function setTemporary(bool $temporary): static;
 
     /**
      * Gets whether the table is temporary in the database.
@@ -264,7 +264,7 @@ interface TableSchemaInterface extends SchemaInterface
      * @return $this
      * @throws \Cake\Database\Exception\DatabaseException
      */
-    public function addIndex(string $name, array|string $attrs);
+    public function addIndex(string $name, array|string $attrs): static;
 
     /**
      * Read information about an index based on name.
@@ -303,7 +303,7 @@ interface TableSchemaInterface extends SchemaInterface
      * @return $this
      * @throws \Cake\Database\Exception\DatabaseException
      */
-    public function addConstraint(string $name, array|string $attrs);
+    public function addConstraint(string $name, array|string $attrs): static;
 
     /**
      * Read information about a constraint based on name.
@@ -319,7 +319,7 @@ interface TableSchemaInterface extends SchemaInterface
      * @param string $name Name of the constraint to remove
      * @return $this
      */
-    public function dropConstraint(string $name);
+    public function dropConstraint(string $name): static;
 
     /**
      * Get the names of all the constraints in the table.

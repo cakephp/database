@@ -83,7 +83,7 @@ class QueryExpression implements ExpressionInterface, Countable
      * @param string $conjunction Value to be used for joining conditions
      * @return $this
      */
-    public function setConjunction(string $conjunction)
+    public function setConjunction(string $conjunction): static
     {
         $this->_conjunction = strtoupper($conjunction);
 
@@ -120,7 +120,7 @@ class QueryExpression implements ExpressionInterface, Countable
      * @see \Cake\Database\Query::where() for examples on conditions
      * @return $this
      */
-    public function add(ExpressionInterface|array|string $conditions, array $types = [])
+    public function add(ExpressionInterface|array|string $conditions, array $types = []): static
     {
         if (is_string($conditions) || $conditions instanceof ExpressionInterface) {
             $this->_conditions[] = $conditions;
@@ -143,7 +143,7 @@ class QueryExpression implements ExpressionInterface, Countable
      * will be created, one per each value in the array.
      * @return $this
      */
-    public function eq(ExpressionInterface|string $field, mixed $value, ?string $type = null)
+    public function eq(ExpressionInterface|string $field, mixed $value, ?string $type = null): static
     {
         $type ??= $this->_calculateType($field);
 
@@ -160,7 +160,7 @@ class QueryExpression implements ExpressionInterface, Countable
      * will be created, one per each value in the array.
      * @return $this
      */
-    public function notEq(ExpressionInterface|string $field, mixed $value, ?string $type = null)
+    public function notEq(ExpressionInterface|string $field, mixed $value, ?string $type = null): static
     {
         $type ??= $this->_calculateType($field);
 
@@ -175,7 +175,7 @@ class QueryExpression implements ExpressionInterface, Countable
      * @param string|null $type the type name for $value as configured using the Type map.
      * @return $this
      */
-    public function gt(ExpressionInterface|string $field, mixed $value, ?string $type = null)
+    public function gt(ExpressionInterface|string $field, mixed $value, ?string $type = null): static
     {
         $type ??= $this->_calculateType($field);
 
@@ -190,7 +190,7 @@ class QueryExpression implements ExpressionInterface, Countable
      * @param string|null $type the type name for $value as configured using the Type map.
      * @return $this
      */
-    public function lt(ExpressionInterface|string $field, mixed $value, ?string $type = null)
+    public function lt(ExpressionInterface|string $field, mixed $value, ?string $type = null): static
     {
         $type ??= $this->_calculateType($field);
 
@@ -205,7 +205,7 @@ class QueryExpression implements ExpressionInterface, Countable
      * @param string|null $type the type name for $value as configured using the Type map.
      * @return $this
      */
-    public function gte(ExpressionInterface|string $field, mixed $value, ?string $type = null)
+    public function gte(ExpressionInterface|string $field, mixed $value, ?string $type = null): static
     {
         $type ??= $this->_calculateType($field);
 
@@ -220,7 +220,7 @@ class QueryExpression implements ExpressionInterface, Countable
      * @param string|null $type the type name for $value as configured using the Type map.
      * @return $this
      */
-    public function lte(ExpressionInterface|string $field, mixed $value, ?string $type = null)
+    public function lte(ExpressionInterface|string $field, mixed $value, ?string $type = null): static
     {
         $type ??= $this->_calculateType($field);
 
@@ -234,7 +234,7 @@ class QueryExpression implements ExpressionInterface, Countable
      * tested for null
      * @return $this
      */
-    public function isNull(ExpressionInterface|string $field)
+    public function isNull(ExpressionInterface|string $field): static
     {
         if (!($field instanceof ExpressionInterface)) {
             $field = new IdentifierExpression($field);
@@ -250,7 +250,7 @@ class QueryExpression implements ExpressionInterface, Countable
      * tested for not null
      * @return $this
      */
-    public function isNotNull(ExpressionInterface|string $field)
+    public function isNotNull(ExpressionInterface|string $field): static
     {
         if (!($field instanceof ExpressionInterface)) {
             $field = new IdentifierExpression($field);
@@ -267,7 +267,7 @@ class QueryExpression implements ExpressionInterface, Countable
      * @param string|null $type the type name for $value as configured using the Type map.
      * @return $this
      */
-    public function like(ExpressionInterface|string $field, mixed $value, ?string $type = null)
+    public function like(ExpressionInterface|string $field, mixed $value, ?string $type = null): static
     {
         $type ??= $this->_calculateType($field);
 
@@ -282,7 +282,7 @@ class QueryExpression implements ExpressionInterface, Countable
      * @param string|null $type the type name for $value as configured using the Type map.
      * @return $this
      */
-    public function notLike(ExpressionInterface|string $field, mixed $value, ?string $type = null)
+    public function notLike(ExpressionInterface|string $field, mixed $value, ?string $type = null): static
     {
         $type ??= $this->_calculateType($field);
 
@@ -302,7 +302,7 @@ class QueryExpression implements ExpressionInterface, Countable
         ExpressionInterface|string $field,
         ExpressionInterface|array|string $values,
         ?string $type = null,
-    ) {
+    ): static {
         $type ??= $this->_calculateType($field);
         $type = $type ?: 'string';
         $type .= '[]';
@@ -356,7 +356,7 @@ class QueryExpression implements ExpressionInterface, Countable
         ExpressionInterface|string $field,
         ExpressionInterface|array|string $values,
         ?string $type = null,
-    ) {
+    ): static {
         $type ??= $this->_calculateType($field);
         $type = $type ?: 'string';
         $type .= '[]';
@@ -378,7 +378,7 @@ class QueryExpression implements ExpressionInterface, Countable
         ExpressionInterface|string $field,
         ExpressionInterface|array|string $values,
         ?string $type = null,
-    ) {
+    ): static {
         $or = new static([], [], 'OR');
         $or
             ->notIn($field, $values, $type)
@@ -393,7 +393,7 @@ class QueryExpression implements ExpressionInterface, Countable
      * @param \Cake\Database\ExpressionInterface $expression the inner query
      * @return $this
      */
-    public function exists(ExpressionInterface $expression)
+    public function exists(ExpressionInterface $expression): static
     {
         return $this->add(new UnaryExpression('EXISTS', $expression, UnaryExpression::PREFIX));
     }
@@ -404,7 +404,7 @@ class QueryExpression implements ExpressionInterface, Countable
      * @param \Cake\Database\ExpressionInterface $expression the inner query
      * @return $this
      */
-    public function notExists(ExpressionInterface $expression)
+    public function notExists(ExpressionInterface $expression): static
     {
         return $this->add(new UnaryExpression('NOT EXISTS', $expression, UnaryExpression::PREFIX));
     }
@@ -419,7 +419,7 @@ class QueryExpression implements ExpressionInterface, Countable
      * @param string|null $type the type name for $value as configured using the Type map.
      * @return $this
      */
-    public function between(ExpressionInterface|string $field, mixed $from, mixed $to, ?string $type = null)
+    public function between(ExpressionInterface|string $field, mixed $from, mixed $to, ?string $type = null): static
     {
         $type ??= $this->_calculateType($field);
 
@@ -473,7 +473,7 @@ class QueryExpression implements ExpressionInterface, Countable
      * values that are being passed. Used for correctly binding values to statements.
      * @return $this
      */
-    public function not(ExpressionInterface|Closure|array|string $conditions, array $types = [])
+    public function not(ExpressionInterface|Closure|array|string $conditions, array $types = []): static
     {
         return $this->add(['NOT' => $conditions], $types);
     }
@@ -497,7 +497,7 @@ class QueryExpression implements ExpressionInterface, Countable
      * @param string $rightField Right join condition field name.
      * @return $this
      */
-    public function equalFields(string $leftField, string $rightField)
+    public function equalFields(string $leftField, string $rightField): static
     {
         $wrapIdentifier = function ($field): ExpressionInterface {
             if ($field instanceof ExpressionInterface) {
@@ -539,7 +539,7 @@ class QueryExpression implements ExpressionInterface, Countable
     /**
      * @inheritDoc
      */
-    public function traverse(Closure $callback)
+    public function traverse(Closure $callback): static
     {
         foreach ($this->_conditions as $c) {
             if ($c instanceof ExpressionInterface) {
@@ -566,7 +566,7 @@ class QueryExpression implements ExpressionInterface, Countable
      * @param \Closure $callback The callback to run for each part
      * @return $this
      */
-    public function iterateParts(Closure $callback)
+    public function iterateParts(Closure $callback): static
     {
         $parts = [];
         foreach ($this->_conditions as $k => $c) {
@@ -774,7 +774,7 @@ class QueryExpression implements ExpressionInterface, Countable
      *
      * @return void
      */
-    public function __clone()
+    public function __clone(): void
     {
         foreach ($this->_conditions as $i => $condition) {
             if ($condition instanceof ExpressionInterface) {

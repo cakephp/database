@@ -127,7 +127,7 @@ class CachedCollection implements CollectionInterface
      * @param \Psr\SimpleCache\CacheInterface $cacher Cacher object
      * @return $this
      */
-    public function setCacher(CacheInterface $cacher)
+    public function setCacher(CacheInterface $cacher): static
     {
         $this->cacher = $cacher;
 

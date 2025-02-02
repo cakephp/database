@@ -844,7 +844,7 @@ abstract class Driver
      * @param bool $enable Whether to enable auto quoting
      * @return $this
      */
-    public function enableAutoQuoting(bool $enable = true)
+    public function enableAutoQuoting(bool $enable = true): static
     {
         $this->_autoQuoting = $enable;
 
@@ -856,7 +856,7 @@ abstract class Driver
      *
      * @return $this
      */
-    public function disableAutoQuoting()
+    public function disableAutoQuoting(): static
     {
         $this->_autoQuoting = false;
 
@@ -1004,7 +1004,7 @@ abstract class Driver
      *
      * @return $this
      */
-    public function enableQueryLogging()
+    public function enableQueryLogging(): static
     {
         $this->logQueries = true;
 
@@ -1016,7 +1016,7 @@ abstract class Driver
      *
      * @return $this
      */
-    public function disableQueryLogging()
+    public function disableQueryLogging(): static
     {
         $this->logQueries = false;
 

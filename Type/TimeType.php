@@ -228,7 +228,7 @@ class TimeType extends BaseType implements BatchCastingInterface
      * @param bool $enable Whether to enable
      * @return $this
      */
-    public function useLocaleParser(bool $enable = true)
+    public function useLocaleParser(bool $enable = true): static
     {
         if (
             $enable &&
@@ -251,7 +251,7 @@ class TimeType extends BaseType implements BatchCastingInterface
      * @see \Cake\I18n\Time::parseTime()
      * @return $this
      */
-    public function setLocaleFormat(string|int|null $format)
+    public function setLocaleFormat(string|int|null $format): static
     {
         $this->_localeMarshalFormat = $format;
 
