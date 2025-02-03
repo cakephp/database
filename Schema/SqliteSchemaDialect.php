@@ -261,7 +261,7 @@ class SqliteSchemaDialect extends SchemaDialect
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
     public function describeColumns(string $tableName): array
     {
