@@ -38,6 +38,7 @@ use Cake\Database\Statement\Statement;
 use InvalidArgumentException;
 use PDO;
 use PDOException;
+use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Stringable;
@@ -46,7 +47,7 @@ use Stringable;
  * Represents a database driver containing all specificities for
  * a database engine including its SQL dialect.
  */
-abstract class Driver
+abstract class Driver implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
