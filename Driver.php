@@ -38,6 +38,7 @@ use Cake\Database\Statement\Statement;
 use InvalidArgumentException;
 use PDO;
 use PDOException;
+use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Stringable;
@@ -46,7 +47,7 @@ use Stringable;
  * Represents a database driver containing all specificities for
  * a database engine including its SQL dialect.
  */
-abstract class Driver
+abstract class Driver implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
@@ -747,6 +748,25 @@ abstract class Driver
     public function quoteIdentifier(string $identifier): string
     {
         return $this->quoter()->quoteIdentifier($identifier);
+    }
+
+    /**
+     * Quotes a database value.
+     *
+     * This makes values safe for concatenation in SQL queries.
+     *
+     * Using this method **is not** recommended. You should use `execute()`
+     * instead, as it uses prepared statements which are safer than
+     * string concatenation.
+     *
+     * This method should only be used for queries that do not support placeholders.
+     *
+     * @param string $value The value to quote.
+     * @return string
+     */
+    public function quote(string $value): string
+    {
+        return $this->getPdo()->quote($value);
     }
 
     /**
