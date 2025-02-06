@@ -58,7 +58,50 @@ class MysqlSchemaDialect extends SchemaDialect
      */
     public function describeColumnSql(string $tableName, array $config): array
     {
-        return ['SHOW FULL COLUMNS FROM ' . $this->_driver->quoteIdentifier($tableName), []];
+        $sql = $this->describeColumnQuery($tableName);
+
+        return [$sql, []];
+    }
+
+    /**
+     * Helper method for creating SQL to describe columns in a table.
+     *
+     * @param string $tableName The table to describe.
+     * @return string SQL to reflect columns
+     */
+    private function describeColumnQuery(string $tableName): string
+    {
+        return 'SHOW FULL COLUMNS FROM ' . $this->_driver->quoteIdentifier($tableName);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function describeColumns(string $tableName): array
+    {
+        $config = $this->_driver->config();
+        if (str_contains($tableName, '.')) {
+            [$config['database'], $tableName] = explode('.', $tableName);
+        }
+        $sql = $this->describeColumnQuery($tableName);
+        $columns = [];
+        $statement = $this->_driver->execute($sql);
+        foreach ($statement->fetchAll('assoc') as $row) {
+            $field = $this->_convertColumn($row['Type']);
+            $field += [
+                'name' => $row['Field'],
+                'null' => $row['Null'] === 'YES',
+                'default' => $row['Default'],
+                'comment' => $row['Comment'],
+                'length' => null,
+            ];
+            if (isset($row['Extra']) && $row['Extra'] === 'auto_increment') {
+                $field['autoIncrement'] = true;
+            }
+            $columns[] = $field;
+        }
+
+        return $columns;
     }
 
     /**
@@ -66,7 +109,65 @@ class MysqlSchemaDialect extends SchemaDialect
      */
     public function describeIndexSql(string $tableName, array $config): array
     {
-        return ['SHOW INDEXES FROM ' . $this->_driver->quoteIdentifier($tableName), []];
+        $sql = $this->describeIndexQuery($tableName);
+
+        return [$sql, []];
+    }
+
+    /**
+     * Helper method for creating SQL to reflect indexes in a table.
+     *
+     * @param string $tableName The table to get indexes from.
+     * @return string SQL to reflect indexes
+     */
+    private function describeIndexQuery(string $tableName): string
+    {
+        return 'SHOW INDEXES FROM ' . $this->_driver->quoteIdentifier($tableName);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function describeIndexes(string $tableName): array
+    {
+        $config = $this->_driver->config();
+        if (str_contains($tableName, '.')) {
+            [$config['database'], $tableName] = explode('.', $tableName);
+        }
+        $sql = $this->describeIndexQuery($tableName);
+        $statement = $this->_driver->execute($sql);
+        $indexes = [];
+
+        foreach ($statement->fetchAll('assoc') as $row) {
+            $name = $row['Key_name'];
+            $type = null;
+            if ($name === 'PRIMARY') {
+                $name = TableSchema::CONSTRAINT_PRIMARY;
+                $type = TableSchema::CONSTRAINT_PRIMARY;
+            }
+            if ($row['Index_type'] === 'FULLTEXT') {
+                $type = TableSchema::INDEX_FULLTEXT;
+            } elseif ((int)$row['Non_unique'] === 0 && $type !== TableSchema::CONSTRAINT_PRIMARY) {
+                $type = TableSchema::CONSTRAINT_UNIQUE;
+            } elseif ($type !== TableSchema::CONSTRAINT_PRIMARY) {
+                $type = TableSchema::INDEX_INDEX;
+            }
+            if (!isset($indexes[$name])) {
+                $indexes[$name] = [
+                    'name' => $name,
+                    'type' => $type,
+                    'columns' => [],
+                    'length' => [],
+                ];
+            }
+
+            $indexes[$name]['columns'][] = $row['Column_name'];
+            if (!empty($row['Sub_part'])) {
+                $indexes[$name]['length'][$row['Column_name']] = $row['Sub_part'];
+            }
+        }
+
+        return array_values($indexes);
     }
 
     /**
@@ -86,6 +187,25 @@ class MysqlSchemaDialect extends SchemaDialect
             'engine' => $row['Engine'],
             'collation' => $row['Collation'],
         ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function describeOptions(string $tableName): array
+    {
+        $config = $this->_driver->config();
+        if (str_contains($tableName, '.')) {
+            [$config['database'], $tableName] = explode('.', $tableName);
+        }
+        $sql = 'SHOW TABLE STATUS WHERE Name = ?';
+        $statement = $this->_driver->execute($sql, [$tableName]);
+        $row = $statement->fetch('assoc');
+
+        return [
+            'engine' => $row['Engine'],
+            'collation' => $row['Collation'],
+        ];
     }
 
     /**
@@ -322,6 +442,53 @@ class MysqlSchemaDialect extends SchemaDialect
         ];
         $name = $row['CONSTRAINT_NAME'];
         $schema->addConstraint($name, $data);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function describeForeignKeys(string $tableName): array
+    {
+        $config = $this->_driver->config();
+        if (str_contains($tableName, '.')) {
+            [$config['database'], $tableName] = explode('.', $tableName);
+        }
+
+        $sql = 'SELECT * FROM information_schema.key_column_usage AS kcu
+            INNER JOIN information_schema.referential_constraints AS rc
+            ON (
+                kcu.CONSTRAINT_NAME = rc.CONSTRAINT_NAME
+                AND kcu.CONSTRAINT_SCHEMA = rc.CONSTRAINT_SCHEMA
+            )
+            WHERE kcu.TABLE_SCHEMA = ? AND kcu.TABLE_NAME = ? AND rc.TABLE_NAME = ?
+            ORDER BY kcu.ORDINAL_POSITION ASC';
+        $params = [$config['database'], $tableName, $tableName];
+        $statement = $this->_driver->execute($sql, $params);
+        $keys = [];
+        foreach ($statement->fetchAll('assoc') as $row) {
+            $name = $row['CONSTRAINT_NAME'];
+            if (!isset($keys[$name])) {
+                $keys[$name] = [
+                    'name' => $name,
+                    'type' => TableSchema::CONSTRAINT_FOREIGN,
+                    'columns' => [],
+                    'references' => [$row['REFERENCED_TABLE_NAME'], []],
+                    'update' => $this->_convertOnClause($row['UPDATE_RULE'] ?? ''),
+                    'delete' => $this->_convertOnClause($row['DELETE_RULE'] ?? ''),
+                    'length' => [],
+                ];
+            }
+            // Add the columns incrementally
+            $keys[$name]['columns'][] = $row['COLUMN_NAME'];
+            $keys[$name]['references'][1][] = $row['REFERENCED_COLUMN_NAME'];
+        }
+        foreach ($keys as $id => $key) {
+            if (count($key['references'][1]) === 1) {
+                $keys[$id]['references'][1] = $key['references'][1][0];
+            }
+        }
+
+        return array_values($keys);
     }
 
     /**
