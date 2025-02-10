@@ -41,7 +41,7 @@ class PostgresSchemaDialect extends SchemaDialect
     {
         $sql = 'SELECT table_name as name FROM information_schema.tables
                 WHERE table_schema = ? ORDER BY name';
-        $schema = empty($config['schema']) ? 'public' : $config['schema'];
+        $schema = $config['schema'] ?? 'public';
 
         return [$sql, [$schema]];
     }
@@ -57,7 +57,7 @@ class PostgresSchemaDialect extends SchemaDialect
     {
         $sql = 'SELECT table_name as name FROM information_schema.tables
                 WHERE table_schema = ? AND table_type = \'BASE TABLE\' ORDER BY name';
-        $schema = empty($config['schema']) ? 'public' : $config['schema'];
+        $schema = $config['schema'] ?? 'public';
 
         return [$sql, [$schema]];
     }
@@ -67,7 +67,20 @@ class PostgresSchemaDialect extends SchemaDialect
      */
     public function describeColumnSql(string $tableName, array $config): array
     {
-        $sql = 'SELECT DISTINCT table_schema AS schema,
+        $sql = $this->describeColumnQuery();
+        $schema = $config['schema'] ?? 'public';
+
+        return [$sql, [$tableName, $schema, $config['database']]];
+    }
+
+    /**
+     * Helper method for creating SQL to describe columns in a table.
+     *
+     * @return string SQL to reflect columns
+     */
+    private function describeColumnQuery(): string
+    {
+        return 'SELECT DISTINCT table_schema AS schema,
             column_name AS name,
             data_type AS type,
             udt_name,
@@ -90,10 +103,6 @@ class PostgresSchemaDialect extends SchemaDialect
         LEFT JOIN pg_catalog.pg_attribute attr ON (cl.oid = attr.attrelid AND column_name = attr.attname)
         WHERE table_name = ? AND table_schema = ? AND table_catalog = ?
         ORDER BY ordinal_position';
-
-        $schema = empty($config['schema']) ? 'public' : $config['schema'];
-
-        return [$sql, [$tableName, $schema, $config['database']]];
     }
 
     /**
@@ -241,6 +250,61 @@ class PostgresSchemaDialect extends SchemaDialect
     }
 
     /**
+     * @inheritDoc
+     */
+    public function describeColumns(string $tableName): array
+    {
+        $config = $this->_driver->config();
+        $schema = $config['schema'] ?? 'public';
+
+        $sql = $this->describeColumnQuery();
+        $statement = $this->_driver->execute($sql, [$tableName, $schema, $config['database']]);
+        $columns = [];
+        foreach ($statement->fetchAll('assoc') as $row) {
+            $field = $this->_convertColumn($row['type']);
+            if ($field['type'] === TableSchemaInterface::TYPE_BOOLEAN) {
+                if ($row['default'] === 'true') {
+                    $row['default'] = 1;
+                } elseif ($row['default'] === 'false') {
+                    $row['default'] = 0;
+                }
+            }
+            if (!empty($row['has_serial'])) {
+                $field['autoIncrement'] = true;
+            }
+
+            $field += [
+                'name' => $row['name'],
+                'default' => $this->_defaultValue($row['default']),
+                'null' => $row['null'] === 'YES',
+                'collate' => $row['collation_name'],
+                'comment' => $row['comment'],
+            ];
+            $field['length'] = $row['char_length'] ?: $field['length'];
+
+            if ($field['type'] === 'numeric' || $field['type'] === 'decimal') {
+                $field['length'] = $row['column_precision'];
+                $field['precision'] = $row['column_scale'] ?: null;
+            }
+
+            if ($field['type'] === TableSchemaInterface::TYPE_TIMESTAMP_FRACTIONAL) {
+                $field['precision'] = $row['datetime_precision'];
+                if ($field['precision'] === 0) {
+                    $field['type'] = TableSchemaInterface::TYPE_TIMESTAMP;
+                }
+            }
+
+            if ($field['type'] === TableSchemaInterface::TYPE_TIMESTAMP_TIMEZONE) {
+                $field['precision'] = $row['datetime_precision'];
+            }
+
+            $columns[] = $field;
+        }
+
+        return $columns;
+    }
+
+    /**
      * Manipulate the default value.
      *
      * Postgres includes sequence data and casting information in default values.
@@ -272,11 +336,13 @@ class PostgresSchemaDialect extends SchemaDialect
     }
 
     /**
-     * @inheritDoc
+     * Get the query to describe indexes
+     *
+     * @return string
      */
-    public function describeIndexSql(string $tableName, array $config): array
+    private function describeIndexQuery(): string
     {
-        $sql = 'SELECT
+        return 'SELECT
         c2.relname,
         a.attname,
         i.indisprimary,
@@ -290,11 +356,15 @@ class PostgresSchemaDialect extends SchemaDialect
         AND a.attnum = ANY(i.indkey)
         AND c.relname = ?
         ORDER BY i.indisprimary DESC, i.indisunique DESC, c.relname, a.attnum';
+    }
 
-        $schema = 'public';
-        if (!empty($config['schema'])) {
-            $schema = $config['schema'];
-        }
+    /**
+     * @inheritDoc
+     */
+    public function describeIndexSql(string $tableName, array $config): array
+    {
+        $sql = $this->describeIndexQuery();
+        $schema = $config['schema'] ?? 'public';
 
         return [$sql, [$schema, $tableName]];
     }
@@ -330,6 +400,40 @@ class PostgresSchemaDialect extends SchemaDialect
     }
 
     /**
+     * @inheritDoc
+     */
+    public function describeIndexes(string $tableName): array
+    {
+        $sql = $this->describeIndexQuery();
+        $config = $this->_driver->config();
+        $schema = $config['schema'] ?? 'public';
+        $indexes = [];
+        $statement = $this->_driver->execute($sql, [$schema, $tableName]);
+        foreach ($statement->fetchAll('assoc') as $row) {
+            $type = TableSchema::INDEX_INDEX;
+            $name = $row['relname'];
+            if ($row['indisprimary']) {
+                $name = TableSchema::CONSTRAINT_PRIMARY;
+                $type = TableSchema::CONSTRAINT_PRIMARY;
+            }
+            if ($row['indisunique'] && $type === TableSchema::INDEX_INDEX) {
+                $type = TableSchema::CONSTRAINT_UNIQUE;
+            }
+            if (!isset($indexes[$name])) {
+                $indexes[$name] = [
+                    'name' => $name,
+                    'type' => $type,
+                    'columns' => [],
+                    'length' => [],
+                ];
+            }
+            $indexes[$name]['columns'][] = $row['attname'];
+        }
+
+        return array_values($indexes);
+    }
+
+    /**
      * Add/update a constraint into the schema object.
      *
      * @param \Cake\Database\Schema\TableSchema $schema The table to update.
@@ -356,6 +460,74 @@ class PostgresSchemaDialect extends SchemaDialect
      */
     public function describeForeignKeySql(string $tableName, array $config): array
     {
+        $sql = $this->describeForeignKeyQuery();
+        $schema = $config['schema'] ?? 'public';
+
+        return [$sql, [$schema, $tableName]];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function convertForeignKeyDescription(TableSchema $schema, array $row): void
+    {
+        $data = [
+            'type' => TableSchema::CONSTRAINT_FOREIGN,
+            'columns' => $row['column_name'],
+            'references' => [$row['references_table'], $row['references_field']],
+            'update' => $this->_convertOnClause($row['on_update']),
+            'delete' => $this->_convertOnClause($row['on_delete']),
+        ];
+        $schema->addConstraint($row['name'], $data);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function describeForeignKeys(string $tableName): array
+    {
+        $config = $this->_driver->config();
+        $schema = $config['schema'] ?? 'public';
+        $sql = $this->describeForeignKeyQuery();
+        $keys = [];
+        $statement = $this->_driver->execute($sql, [$schema, $tableName]);
+        foreach ($statement->fetchAll('assoc') as $row) {
+            $name = $row['name'];
+            if (!isset($keys[$name])) {
+                $keys[$name] = [
+                    'name' => $name,
+                    'type' => TableSchema::CONSTRAINT_FOREIGN,
+                    'columns' => [],
+                    'references' => [$row['references_table'], []],
+                    'update' => $this->_convertOnClause($row['on_update']),
+                    'delete' => $this->_convertOnClause($row['on_delete']),
+                ];
+            }
+            // column indexes start at 1
+            $columnOrder = $row['column_order'] - 1;
+            $referencedColumnOrder = $row['references_field_order'] - 1;
+
+            $keys[$name]['columns'][$columnOrder] = $row['column_name'];
+            $keys[$name]['references'][1][$referencedColumnOrder] = $row['references_field'];
+        }
+        foreach ($keys as $id => $key) {
+            // references.1 is the referenced columns. Backwards compat
+            // requires a single column to be a string, but multiple to be an array.
+            if (count($key['references'][1]) === 1) {
+                $keys[$id]['references'][1] = $key['references'][1][0];
+            }
+        }
+
+        return array_values($keys);
+    }
+
+    /**
+     * Get the query to describe foreign keys
+     *
+     * @return string
+     */
+    private function describeForeignKeyQuery(): string
+    {
         // phpcs:disable Generic.Files.LineLength
         $sql = 'SELECT
         c.conname AS name,
@@ -377,24 +549,8 @@ class PostgresSchemaDialect extends SchemaDialect
         AND cl.relname = ?
         ORDER BY name, column_order ASC, references_field_order ASC';
         // phpcs:enable Generic.Files.LineLength
-        $schema = empty($config['schema']) ? 'public' : $config['schema'];
 
-        return [$sql, [$schema, $tableName]];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function convertForeignKeyDescription(TableSchema $schema, array $row): void
-    {
-        $data = [
-            'type' => TableSchema::CONSTRAINT_FOREIGN,
-            'columns' => $row['column_name'],
-            'references' => [$row['references_table'], $row['references_field']],
-            'update' => $this->_convertOnClause($row['on_update']),
-            'delete' => $this->_convertOnClause($row['on_delete']),
-        ];
-        $schema->addConstraint($row['name'], $data);
+        return $sql;
     }
 
     /**
