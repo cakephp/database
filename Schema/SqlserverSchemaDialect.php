@@ -42,7 +42,7 @@ class SqlserverSchemaDialect extends SchemaDialect
             WHERE TABLE_SCHEMA = ?
             AND (TABLE_TYPE = 'BASE TABLE' OR TABLE_TYPE = 'VIEW')
             ORDER BY TABLE_NAME";
-        $schema = empty($config['schema']) ? static::DEFAULT_SCHEMA_NAME : $config['schema'];
+        $schema = $config['schema'] ?? static::DEFAULT_SCHEMA_NAME;
 
         return [$sql, [$schema]];
     }
@@ -61,7 +61,7 @@ class SqlserverSchemaDialect extends SchemaDialect
             WHERE TABLE_SCHEMA = ?
             AND (TABLE_TYPE = 'BASE TABLE')
             ORDER BY TABLE_NAME";
-        $schema = empty($config['schema']) ? static::DEFAULT_SCHEMA_NAME : $config['schema'];
+        $schema = $config['schema'] ?? static::DEFAULT_SCHEMA_NAME;
 
         return [$sql, [$schema]];
     }
@@ -71,7 +71,20 @@ class SqlserverSchemaDialect extends SchemaDialect
      */
     public function describeColumnSql(string $tableName, array $config): array
     {
-        $sql = 'SELECT DISTINCT
+        $sql = $this->describeColumnQuery();
+        $schema = $config['schema'] ?? static::DEFAULT_SCHEMA_NAME;
+
+        return [$sql, [$tableName, $schema]];
+    }
+
+    /**
+     * Helper method for creating SQL to describe columns in a table.
+     *
+     * @return string SQL to reflect columns
+     */
+    private function describeColumnQuery(): string
+    {
+        return 'SELECT DISTINCT
             AC.column_id AS [column_id],
             AC.name AS [name],
             TY.name AS [type],
@@ -88,10 +101,6 @@ class SqlserverSchemaDialect extends SchemaDialect
             INNER JOIN sys.[types] TY ON TY.[user_type_id] = AC.[user_type_id]
             WHERE T.[name] = ? AND S.[name] = ?
             ORDER BY column_id';
-
-        $schema = empty($config['schema']) ? static::DEFAULT_SCHEMA_NAME : $config['schema'];
-
-        return [$sql, [$tableName, $schema]];
     }
 
     /**
@@ -240,6 +249,42 @@ class SqlserverSchemaDialect extends SchemaDialect
     }
 
     /**
+     * @inheritDoc
+     */
+    public function describeColumns(string $tableName): array
+    {
+        $config = $this->_driver->config();
+        $schema = $config['schema'] ?? static::DEFAULT_SCHEMA_NAME;
+
+        $sql = $this->describeColumnQuery();
+        $statement = $this->_driver->execute($sql, [$tableName, $schema]);
+        $columns = [];
+        foreach ($statement->fetchAll('assoc') as $row) {
+            $field = $this->_convertColumn(
+                $row['type'],
+                $row['char_length'] !== null ? (int)$row['char_length'] : null,
+                $row['precision'] !== null ? (int)$row['precision'] : null,
+                $row['scale'] !== null ? (int)$row['scale'] : null,
+            );
+
+            if (!empty($row['autoincrement'])) {
+                $field['autoIncrement'] = true;
+            }
+
+            $field += [
+                'name' => $row['name'],
+                'null' => $row['null'] === '1',
+                'default' => $this->_defaultValue($field['type'], $row['default']),
+                'comment' => null,
+                'collate' => $row['collation_name'],
+            ];
+            $columns[] = $field;
+        }
+
+        return $columns;
+    }
+
+    /**
      * Manipulate the default value.
      *
      * Removes () wrapping default values, extracts strings from
@@ -282,7 +327,20 @@ class SqlserverSchemaDialect extends SchemaDialect
      */
     public function describeIndexSql(string $tableName, array $config): array
     {
-        $sql = "SELECT
+        $sql = $this->describeIndexQuery();
+        $schema = $config['schema'] ?? static::DEFAULT_SCHEMA_NAME;
+
+        return [$sql, [$tableName, $schema]];
+    }
+
+    /**
+     * Get the query to describe indexes
+     *
+     * @return string
+     */
+    private function describeIndexQuery(): string
+    {
+        return "SELECT
                 I.[name] AS [index_name],
                 IC.[index_column_id] AS [index_order],
                 AC.[name] AS [column_name],
@@ -295,10 +353,6 @@ class SqlserverSchemaDialect extends SchemaDialect
             INNER JOIN sys.[all_columns] AC ON T.[object_id] = AC.[object_id] AND IC.[column_id] = AC.[column_id]
             WHERE T.[is_ms_shipped] = 0 AND I.[type_desc] <> 'HEAP' AND T.[name] = ? AND S.[name] = ?
             ORDER BY I.[index_id], IC.[index_column_id]";
-
-        $schema = empty($config['schema']) ? static::DEFAULT_SCHEMA_NAME : $config['schema'];
-
-        return [$sql, [$tableName, $schema]];
     }
 
     /**
@@ -344,12 +398,53 @@ class SqlserverSchemaDialect extends SchemaDialect
     /**
      * @inheritDoc
      */
-    public function describeForeignKeySql(string $tableName, array $config): array
+    public function describeIndexes(string $tableName): array
+    {
+        $sql = $this->describeIndexQuery();
+        $config = $this->_driver->config();
+        $schema = $config['schema'] ?? static::DEFAULT_SCHEMA_NAME;
+        $indexes = [];
+        $statement = $this->_driver->execute($sql, [$tableName, $schema]);
+        foreach ($statement->fetchAll('assoc') as $row) {
+            $type = TableSchema::INDEX_INDEX;
+            $name = $row['index_name'];
+            if ($row['is_primary_key']) {
+                $name = TableSchema::CONSTRAINT_PRIMARY;
+                $type = TableSchema::CONSTRAINT_PRIMARY;
+            }
+            if (($row['is_unique'] || $row['is_unique_constraint']) && $type === TableSchema::INDEX_INDEX) {
+                $type = TableSchema::CONSTRAINT_UNIQUE;
+            }
+
+            if (!isset($indexes[$name])) {
+                $indexes[$name] = [
+                    'name' => $name,
+                    'type' => $type,
+                    'columns' => [],
+                    'length' => [],
+                ];
+            }
+            $indexes[$name]['columns'][] = $row['column_name'];
+        }
+
+        return array_values($indexes);
+    }
+
+    /**
+     * Get the query to describe foreign keys
+     *
+     * @return string
+     */
+    private function describeForeignKeyQuery(): string
     {
         // phpcs:disable Generic.Files.LineLength
-        $sql = 'SELECT FK.[name] AS [foreign_key_name], FK.[delete_referential_action_desc] AS [delete_type],
-                FK.[update_referential_action_desc] AS [update_type], C.name AS [column], RT.name AS [reference_table],
-                RC.name AS [reference_column]
+
+        return 'SELECT FK.[name] AS [foreign_key_name],
+            FK.[delete_referential_action_desc] AS [delete_type],
+            FK.[update_referential_action_desc] AS [update_type],
+            C.name AS [column],
+            RT.name AS [reference_table],
+            RC.name AS [reference_column]
             FROM sys.foreign_keys FK
             INNER JOIN sys.foreign_key_columns FKC ON FKC.constraint_object_id = FK.object_id
             INNER JOIN sys.tables T ON T.object_id = FKC.parent_object_id
@@ -360,8 +455,52 @@ class SqlserverSchemaDialect extends SchemaDialect
             WHERE FK.is_ms_shipped = 0 AND T.name = ? AND S.name = ?
             ORDER BY FKC.constraint_column_id';
         // phpcs:enable Generic.Files.LineLength
+    }
 
-        $schema = empty($config['schema']) ? static::DEFAULT_SCHEMA_NAME : $config['schema'];
+    /**
+     * @inheritDoc
+     */
+    public function describeForeignKeys(string $tableName): array
+    {
+        $config = $this->_driver->config();
+        $schema = $config['schema'] ?? static::DEFAULT_SCHEMA_NAME;
+        $sql = $this->describeForeignKeyQuery();
+        $keys = [];
+        $statement = $this->_driver->execute($sql, [$tableName, $schema]);
+        foreach ($statement->fetchAll('assoc') as $row) {
+            $name = $row['foreign_key_name'];
+            if (!isset($keys[$name])) {
+                $keys[$name] = [
+                    'name' => $name,
+                    'type' => TableSchema::CONSTRAINT_FOREIGN,
+                    'columns' => [],
+                    'references' => [$row['reference_table'], []],
+                    'update' => $this->_convertOnClause($row['update_type']),
+                    'delete' => $this->_convertOnClause($row['delete_type']),
+                ];
+            }
+            $keys[$name]['columns'][] = $row['column'];
+            $keys[$name]['references'][1][] = $row['reference_column'];
+        }
+
+        foreach ($keys as $id => $key) {
+            // references.1 is the referenced columns. Backwards compat
+            // requires a single column to be a string, but multiple to be an array.
+            if (count($key['references'][1]) === 1) {
+                $keys[$id]['references'][1] = $key['references'][1][0];
+            }
+        }
+
+        return array_values($keys);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function describeForeignKeySql(string $tableName, array $config): array
+    {
+        $sql = $this->describeForeignKeyQuery();
+        $schema = $config['schema'] ?? static::DEFAULT_SCHEMA_NAME;
 
         return [$sql, [$tableName, $schema]];
     }
@@ -380,6 +519,14 @@ class SqlserverSchemaDialect extends SchemaDialect
         ];
         $name = $row['foreign_key_name'];
         $schema->addConstraint($name, $data);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function describeOptions(string $tableName): array
+    {
+        return [];
     }
 
     /**
