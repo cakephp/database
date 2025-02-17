@@ -23,6 +23,7 @@ use Cake\Database\Type\ColumnSchemaAwareInterface;
 use Cake\Database\TypeFactory;
 use InvalidArgumentException;
 use PDOException;
+use function Cake\Core\deprecationWarning;
 
 /**
  * Base class for schema implementations.
@@ -399,46 +400,30 @@ abstract class SchemaDialect
      */
     public function describe(string $name): TableSchemaInterface
     {
-        $config = $this->_driver->config();
+        $tableName = $name;
         if (str_contains($name, '.')) {
-            [$config['schema'], $name] = explode('.', $name);
+            $tableName = explode('.', $name)[1];
         }
-        // This is kind of a lie, but the convert methods
-        // would have a breaking change to change their parameter type.
-        /** @var \Cake\Database\Schema\TableSchema $table */
-        $table = $this->_driver->newTableSchema($name);
-
-        [$sql, $params] = $this->describeColumnSql($name, $config);
-        try {
-            $statement = $this->_driver->execute($sql, $params);
-        } catch (PDOException $e) {
-            throw new DatabaseException($e->getMessage(), 500, $e);
+        $table = $this->_driver->newTableSchema($tableName);
+        foreach ($this->describeColumns($name) as $column) {
+            $table->addColumn($column['name'], $column);
         }
-        foreach ($statement->fetchAll('assoc') as $row) {
-            $this->convertColumnDescription($table, $row);
+        foreach ($this->describeIndexes($name) as $index) {
+            if (in_array($index['type'], [TableSchema::CONSTRAINT_UNIQUE, TableSchema::CONSTRAINT_PRIMARY])) {
+                $table->addConstraint($index['name'], $index);
+            } else {
+                $table->addIndex($index['name'], $index);
+            }
+        }
+        foreach ($this->describeForeignKeys($name) as $key) {
+            $table->addConstraint($key['name'], $key);
+        }
+        $options = $this->describeOptions($name);
+        if ($options) {
+            $table->setOptions($options);
         }
         if ($table->columns() === []) {
             throw new DatabaseException(sprintf('Cannot describe %s. It has 0 columns.', $name));
-        }
-
-        [$sql, $params] = $this->describeForeignKeySql($name, $config);
-        $statement = $this->_driver->execute($sql, $params);
-        foreach ($statement->fetchAll('assoc') as $row) {
-            $this->convertForeignKeyDescription($table, $row);
-        }
-
-        [$sql, $params] = $this->describeIndexSql($name, $config);
-        $statement = $this->_driver->execute($sql, $params);
-        foreach ($statement->fetchAll('assoc') as $row) {
-            $this->convertIndexDescription($table, $row);
-        }
-
-        [$sql, $params] = $this->describeOptionsSql($name, $config);
-        if ($sql) {
-            $statement = $this->_driver->execute($sql, $params);
-            foreach ($statement->fetchAll('assoc') as $row) {
-                $this->convertOptionsDescription($table, $row);
-            }
         }
 
         return $table;
@@ -463,6 +448,10 @@ abstract class SchemaDialect
      */
     public function describeColumns(string $tableName): array
     {
+        deprecationWarning(
+            '5.2.0',
+            'SchemaDialect subclasses need to implement `describeColumns` before 6.0.0',
+        );
         $config = $this->_driver->config();
         if (str_contains($tableName, '.')) {
             [$config['schema'], $tableName] = explode('.', $tableName);
@@ -502,6 +491,10 @@ abstract class SchemaDialect
      */
     public function describeForeignKeys(string $tableName): array
     {
+        deprecationWarning(
+            '5.2.0',
+            'SchemaDialect subclasses need to implement `describeForeignKeys` before 6.0.0',
+        );
         $config = $this->_driver->config();
         if (str_contains($tableName, '.')) {
             [$config['schema'], $tableName] = explode('.', $tableName);
@@ -543,6 +536,10 @@ abstract class SchemaDialect
      */
     public function describeIndexes(string $tableName): array
     {
+        deprecationWarning(
+            '5.2.0',
+            'SchemaDialect subclasses need to implement `describeIndexes` before 6.0.0',
+        );
         $config = $this->_driver->config();
         if (str_contains($tableName, '.')) {
             [$config['schema'], $tableName] = explode('.', $tableName);
@@ -579,6 +576,10 @@ abstract class SchemaDialect
      */
     public function describeOptions(string $tableName): array
     {
+        deprecationWarning(
+            '5.2.0',
+            'SchemaDialect subclasses need to implement `describeOptions` before 6.0.0',
+        );
         $config = $this->_driver->config();
         if (str_contains($tableName, '.')) {
             [$config['schema'], $tableName] = explode('.', $tableName);
@@ -608,7 +609,7 @@ abstract class SchemaDialect
     {
         try {
             $columns = $this->describeColumns($tableName);
-        } catch (QueryException) {
+        } catch (PDOException | DatabaseException) {
             return false;
         }
         foreach ($columns as $column) {
