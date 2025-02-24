@@ -269,20 +269,27 @@ class SqliteSchemaDialect extends SchemaDialect
         $sql = $this->describeColumnQuery($tableName);
         $columns = [];
         $statement = $this->_driver->execute($sql);
-        foreach ($statement->fetchAll('assoc') as $row) {
+        $primary = [];
+        foreach ($statement->fetchAll('assoc') as $i => $row) {
+            $name = $row['name'];
             $field = $this->_convertColumn($row['type']);
             $field += [
-                'name' => $row['name'],
+                'name' => $name,
                 'null' => !$row['notnull'],
                 'default' => $this->_defaultValue($row['dflt_value']),
                 'comment' => null,
                 'length' => null,
             ];
             if ($row['pk']) {
-                $field['null'] = false;
-                $field['autoIncrement'] = true;
+                $primary[] = $i;
             }
             $columns[] = $field;
+        }
+        // If sqlite has a single primary column, it can be marked as autoIncrement
+        if (count($primary) == 1) {
+            $offset = $primary[0];
+            $columns[$offset]['autoIncrement'] = true;
+            $columns[$offset]['null'] = false;
         }
 
         return $columns;
@@ -330,23 +337,13 @@ class SqliteSchemaDialect extends SchemaDialect
      */
     protected function possiblyQuotedIdentifierRegex(string $identifier): string
     {
-        $identifiers = [];
-        $identifier = preg_quote($identifier, '/');
+        // Trim all quoting characters from the provided identifier,
+        // and double all quotes up because that's how sqlite returns them.
+        $identifier = trim($identifier, '\'"`[]');
+        $identifier = str_replace(["'", '"', '`'], ["''", '""', '``'], $identifier);
+        $quoted = preg_quote($identifier, '/');
 
-        $hasTick = str_contains($identifier, '`');
-        $hasDoubleQuote = str_contains($identifier, '"');
-        $hasSingleQuote = str_contains($identifier, "'");
-
-        $identifiers[] = '\[' . $identifier . '\]';
-        $identifiers[] = '`' . ($hasTick ? str_replace('`', '``', $identifier) : $identifier) . '`';
-        $identifiers[] = '"' . ($hasDoubleQuote ? str_replace('"', '""', $identifier) : $identifier) . '"';
-        $identifiers[] = "'" . ($hasSingleQuote ? str_replace("'", "''", $identifier) : $identifier) . "'";
-
-        if (!$hasTick && !$hasDoubleQuote && !$hasSingleQuote) {
-            $identifiers[] = $identifier;
-        }
-
-        return implode('|', $identifiers);
+        return "[\['\"`]?{$quoted}[\]'\"`]?";
     }
 
     /**
@@ -407,7 +404,8 @@ class SqliteSchemaDialect extends SchemaDialect
         }
         if ($row['unique']) {
             if ($row['origin'] === 'u') {
-                $name = $this->extractIndexName($schema->name(), $columns);
+                $createTableSql = $this->getCreateTableSql($schema->name());
+                $name = $this->extractIndexName($createTableSql, 'UNIQUE', $columns);
                 if ($name !== null) {
                     $row['name'] = $name;
                 }
@@ -440,24 +438,15 @@ class SqliteSchemaDialect extends SchemaDialect
     }
 
     /**
-     * Try to extract the original unique index name from table sql.
+     * Try to extract the original constraint name from table sql.
      *
-     * @param string $tableName The table name.
+     * @param string $tableSql The create table statement
+     * @param string $type The type of index/constraint
      * @param array $columns The columns in the index.
      * @return string|null The name of the unique index if it could be inferred.
      */
-    private function extractIndexName(string $tableName, array $columns): ?string
+    private function extractIndexName(string $tableSql, string $type, array $columns): ?string
     {
-        $sql = 'SELECT sql FROM sqlite_master WHERE type = "table" AND tbl_name = ?';
-        $statement = $this->_driver->execute($sql, [$tableName]);
-        $statement->execute();
-
-        $tableRow = $statement->fetchAssoc();
-        $tableSql = $tableRow['sql'] ??= null;
-        if (!$tableSql) {
-            return null;
-        }
-
         $columnsPattern = implode(
             '\s*,\s*',
             array_map(
@@ -466,12 +455,27 @@ class SqliteSchemaDialect extends SchemaDialect
             ),
         );
 
-        $regex = "/CONSTRAINT\s*(['\"`\[ ].+?['\"`\] ])\s*UNIQUE\s*\(\s*(?:{$columnsPattern})\s*\)/i";
+        $regex = "/CONSTRAINT\s*(?<name>.+?)\s*{$type}\s*\(\s*{$columnsPattern}\s*\)/i";
         if (preg_match($regex, $tableSql, $matches)) {
-            return $this->normalizePossiblyQuotedIdentifier($matches[1]);
+            return $this->normalizePossiblyQuotedIdentifier($matches['name']);
         }
 
         return null;
+    }
+
+    /**
+     * Get the normalized SQL query used to create a table.
+     *
+     * @param string $tableName The tablename
+     * @return string
+     */
+    private function getCreateTableSql(string $tableName): string
+    {
+        $masterSql = "SELECT sql FROM sqlite_master WHERE \"type\" = 'table' AND \"name\" = ?";
+        $statement = $this->_driver->execute($masterSql, [$tableName]);
+        $result = $statement->fetchColumn(0);
+
+        return $result ? $result : '';
     }
 
     /**
@@ -486,8 +490,12 @@ class SqliteSchemaDialect extends SchemaDialect
         $sql = $this->describeIndexQuery($tableName);
         $statement = $this->_driver->execute($sql);
         $indexes = [];
+        $createTableSql = $this->getCreateTableSql($tableName);
 
         foreach ($statement->fetchAll('assoc') as $row) {
+            if ($row['origin'] == 'pk') {
+                continue;
+            }
             $indexName = $row['name'];
             $indexSql = sprintf(
                 'PRAGMA index_info(%s)',
@@ -504,7 +512,7 @@ class SqliteSchemaDialect extends SchemaDialect
                 $indexType = TableSchema::CONSTRAINT_UNIQUE;
             }
             if ($indexType == TableSchema::CONSTRAINT_UNIQUE) {
-                $name = $this->extractIndexName($tableName, $columns);
+                $name = $this->extractIndexName($createTableSql, 'UNIQUE', $columns);
                 if ($name !== null) {
                     $indexName = $name;
                 }
@@ -516,6 +524,24 @@ class SqliteSchemaDialect extends SchemaDialect
                 'columns' => $columns,
                 'length' => [],
             ];
+        }
+        // Primary keys aren't available from the index_info pragma
+        // instead we have to read the columns again.
+        $sql = $this->describeColumnQuery($tableName);
+        $statement = $this->_driver->execute($sql);
+        foreach ($statement->fetchAll('assoc') as $row) {
+            if (!$row['pk']) {
+                continue;
+            }
+            if (!isset($indexes['primary'])) {
+                $indexes['primary'] = [
+                    'name' => 'primary',
+                    'type' => TableSchema::CONSTRAINT_PRIMARY,
+                    'columns' => [],
+                    'length' => [],
+                ];
+            }
+            $indexes['primary']['columns'][] = $row['name'];
         }
 
         return array_values($indexes);
@@ -605,8 +631,16 @@ class SqliteSchemaDialect extends SchemaDialect
             $keys[$id]['references'][1][$row['seq']] = $row['to'];
         }
 
+        $createTableSql = $this->getCreateTableSql($tableName);
         foreach ($keys as $id => $data) {
-            $keys[$id]['name'] = implode('_', $data['columns']) . '_' . $id . '_fk';
+            // sqlite doesn't provide a simple way to get foreign key names, but we
+            // can extract them from the normalized create table sql.
+            $name = $this->extractIndexName($createTableSql, 'FOREIGN KEY', $data['columns']);
+            if ($name === null) {
+                $name = implode('_', $data['columns']) . '_' . $id . '_fk';
+            }
+            $keys[$id]['name'] = $name;
+
             // Collapse single columns to a string.
             // Long term this should go away, as we can narrow the types on `references`
             if (count($data['references'][1]) === 1) {
@@ -615,6 +649,14 @@ class SqliteSchemaDialect extends SchemaDialect
         }
 
         return array_values($keys);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function describeOptions(string $tableName): array
+    {
+        return [];
     }
 
     /**
