@@ -118,10 +118,11 @@ class UpdateQuery extends Query
         }
 
         if (is_array($key)) {
+            $typeMap = $this->getTypeMap()->setTypes($value ?? []);
             /** @var \Cake\Database\Expression\QueryExpression $setExpr */
             $setExpr = $this->_parts['set'];
             foreach ($key as $k => $v) {
-                $setExpr->add(new ComparisonExpression( $k, $v));
+                $setExpr->add(new ComparisonExpression($k, $v, $typeMap->type($k)));
             }
 
             return $this;
