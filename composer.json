@@ -32,7 +32,7 @@
     },
     "require-dev": {
         "cakephp/i18n": "5.2.*@dev",
-        "cakephp/log": "^5.2"
+        "cakephp/log": "5.2.*@dev"
     },
     "autoload": {
         "psr-4": {
