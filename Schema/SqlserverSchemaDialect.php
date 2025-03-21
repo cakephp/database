@@ -94,11 +94,16 @@ class SqlserverSchemaDialect extends SchemaDialect
             AC.is_identity AS [autoincrement],
             AC.is_nullable AS [null],
             OBJECT_DEFINITION(AC.default_object_id) AS [default],
-            AC.collation_name AS [collation_name]
+            AC.collation_name AS [collation_name],
+            EP.[value] AS [comment]
             FROM sys.[objects] T
             INNER JOIN sys.[schemas] S ON S.[schema_id] = T.[schema_id]
             INNER JOIN sys.[all_columns] AC ON T.[object_id] = AC.[object_id]
             INNER JOIN sys.[types] TY ON TY.[user_type_id] = AC.[user_type_id]
+            LEFT JOIN sys.[extended_properties] as EP
+                ON T.[object_id] = EP.[major_id]
+                AND AC.[column_id] = EP.[minor_id]
+                AND EP.[name] = \'MS_Description\'
             WHERE T.[name] = ? AND S.[name] = ?
             ORDER BY column_id';
     }
@@ -293,7 +298,7 @@ class SqlserverSchemaDialect extends SchemaDialect
                 'name' => $row['name'],
                 'null' => $row['null'] === '1',
                 'default' => $this->_defaultValue($field['type'], $row['default']),
-                'comment' => null,
+                'comment' => $row['comment'] ?? null,
                 'collate' => $row['collation_name'],
             ];
             $columns[] = $field;
@@ -851,8 +856,37 @@ class SqlserverSchemaDialect extends SchemaDialect
         foreach ($indexes as $index) {
             $out[] = $index;
         }
+        foreach ($schema->columns() as $name) {
+            $column = $schema->getColumn($name);
+            $comment = $column['comment'] ?? null;
+            if ($comment !== null) {
+                $out[] = $this->columnCommentSql($schema, $name, $comment);
+            }
+        }
 
         return $out;
+    }
+
+    /**
+     * Generate the SQL to create a column comment.
+     *
+     * @param \Cake\Database\Schema\TableSchema $schema The table schema.
+     * @param string $name The column name.
+     * @param string $comment The column comment.
+     * @return string
+     */
+    protected function columnCommentSql(TableSchema $schema, string $name, string $comment): string
+    {
+        $tableName = $this->_driver->quoteIdentifier($schema->name());
+        $columnName = $this->_driver->quoteIdentifier($name);
+        $comment = $this->_driver->schemaValue($comment);
+
+        return sprintf(
+            "EXEC sp_addextendedproperty N'MS_Description', %s, N'SCHEMA', N'dbo', N'TABLE', %s, N'COLUMN', %s;",
+            $comment,
+            $tableName,
+            $columnName,
+        );
     }
 
     /**
