@@ -120,7 +120,7 @@ class WindowExpression implements ExpressionInterface, WindowInterface
     {
         deprecationWarning(
             '5.0.0',
-            'WindowExpression::order() is deprecated. Use WindowExpression::orderBy() instead.'
+            'WindowExpression::order() is deprecated. Use WindowExpression::orderBy() instead.',
         );
 
         return $this->orderBy($fields);

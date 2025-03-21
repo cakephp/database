@@ -95,7 +95,7 @@ class AggregateExpression extends FunctionExpression implements WindowInterface
     {
         deprecationWarning(
             '5.0.0',
-            'AggregateExpression::order() is deprecated. Use AggregateExpression::orderBy() instead.'
+            'AggregateExpression::order() is deprecated. Use AggregateExpression::orderBy() instead.',
         );
 
         return $this->orderBy($fields);
