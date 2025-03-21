@@ -453,7 +453,7 @@ class SqliteSchemaDialect extends SchemaDialect
         $columnsPattern = implode(
             '\s*,\s*',
             array_map(
-                fn ($column) => '(?:' . $this->possiblyQuotedIdentifierRegex($column) . ')',
+                fn($column) => '(?:' . $this->possiblyQuotedIdentifierRegex($column) . ')',
                 $columns,
             ),
         );
@@ -478,7 +478,7 @@ class SqliteSchemaDialect extends SchemaDialect
         $statement = $this->_driver->execute($masterSql, [$tableName]);
         $result = $statement->fetchColumn(0);
 
-        return $result ? $result : '';
+        return $result ?: '';
     }
 
     /**
