@@ -137,7 +137,7 @@ class WindowExpression implements ExpressionInterface, WindowInterface
      */
     public function range(
         ExpressionInterface|string|int|null $start,
-        ExpressionInterface|string|int|null $end = 0
+        ExpressionInterface|string|int|null $end = 0,
     ): static {
         return $this->frame(self::RANGE, $start, self::PRECEDING, $end, self::FOLLOWING);
     }

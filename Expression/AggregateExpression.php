@@ -102,7 +102,7 @@ class AggregateExpression extends FunctionExpression implements WindowInterface
      */
     public function range(
         ExpressionInterface|string|int|null $start,
-        ExpressionInterface|string|int|null $end = 0
+        ExpressionInterface|string|int|null $end = 0,
     ): static {
         $this->getWindow()->range($start, $end);
 

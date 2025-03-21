@@ -105,7 +105,7 @@ class UpdateQuery extends Query
     public function set(
         QueryExpression|Closure|array|string $key,
         mixed $value = null,
-        array|string $types = []
+        array|string $types = [],
     ): static {
         if (empty($this->_parts['set'])) {
             $this->_parts['set'] = $this->newExpr()->setConjunction(',');

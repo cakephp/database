@@ -162,7 +162,7 @@ class SelectQuery extends Query implements IteratorAggregate
      */
     public function select(
         ExpressionInterface|Closure|array|string|float|int $fields = [],
-        bool $overwrite = false
+        bool $overwrite = false,
     ): static {
         if (!is_string($fields) && $fields instanceof Closure) {
             $fields = $fields($this);
