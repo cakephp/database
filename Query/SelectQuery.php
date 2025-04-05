@@ -80,7 +80,7 @@ class SelectQuery extends Query implements IteratorAggregate
     protected array $_resultDecorators = [];
 
     /**
-     * Result set from exeuted SELCT query.
+     * Result set from executed SELECT query.
      *
      * @var iterable|null
      */

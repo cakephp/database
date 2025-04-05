@@ -120,7 +120,7 @@ class UpdateQuery extends Query
             return $this;
         }
 
-        if (is_array($key)) {
+        if (is_array($key) && !isset($key[0])) {
             $typeMap = $this->getTypeMap()->setTypes($value ?? []);
             /** @var \Cake\Database\Expression\QueryExpression $setExpr */
             $setExpr = $this->_parts['set'];
@@ -131,7 +131,7 @@ class UpdateQuery extends Query
             return $this;
         }
 
-        if ($key instanceof ExpressionInterface) {
+        if (is_array($key) || $key instanceof ExpressionInterface) {
             $types = (array)$value;
             /** @var \Cake\Database\Expression\QueryExpression $setExpr */
             $setExpr = $this->_parts['set'];
