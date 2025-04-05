@@ -1465,7 +1465,7 @@ abstract class Query implements ExpressionInterface, Stringable
      *  ->epilog('RETURNING id');
      * ```
      *
-     * Epliog content is raw SQL and not suitable for use with user supplied data.
+     * Epilog content is raw SQL and not suitable for use with user supplied data.
      *
      * @param \Cake\Database\ExpressionInterface|string|null $expression The expression to be appended
      * @return $this

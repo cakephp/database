@@ -248,7 +248,7 @@ class Postgres extends Driver
     /**
      * Changes identifer expression into postgresql format.
      *
-     * @param \Cake\Database\Expression\IdentifierExpression $expression The expression to tranform.
+     * @param \Cake\Database\Expression\IdentifierExpression $expression The expression to transform.
      * @return void
      */
     protected function _transformIdentifierExpression(IdentifierExpression $expression): void
@@ -340,7 +340,7 @@ class Postgres extends Driver
     /**
      * Changes string expression into postgresql format.
      *
-     * @param \Cake\Database\Expression\StringExpression $expression The string expression to tranform.
+     * @param \Cake\Database\Expression\StringExpression $expression The string expression to transform.
      * @return void
      */
     protected function _transformStringExpression(StringExpression $expression): void
