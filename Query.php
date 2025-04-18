@@ -1802,7 +1802,6 @@ abstract class Query implements ExpressionInterface, Stringable
                     if (is_array($piece)) {
                         foreach ($piece as $j => $value) {
                             if ($value instanceof ExpressionInterface) {
-                                /** @psalm-suppress PossiblyUndefinedMethod */
                                 $this->_parts[$name][$i][$j] = clone $value;
                             }
                         }
