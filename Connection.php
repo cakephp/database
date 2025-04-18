@@ -132,7 +132,7 @@ class Connection implements ConnectionInterface
      *
      * @param array<string, mixed> $config Connection config
      * @return array<string, \Cake\Database\Driver>
-     * @psalm-return array{read: \Cake\Database\Driver, write: \Cake\Database\Driver}
+     * @phpstan-return array{read: \Cake\Database\Driver, write: \Cake\Database\Driver}
      */
     protected function createDrivers(array $config): array
     {
@@ -792,11 +792,9 @@ class Connection implements ConnectionInterface
         $config = $replace + $this->_config;
 
         if (isset($config['read'])) {
-            /** @psalm-suppress PossiblyInvalidArgument */
             $config['read'] = array_intersect_key($secrets, $config['read']) + $config['read'];
         }
         if (isset($config['write'])) {
-            /** @psalm-suppress PossiblyInvalidArgument */
             $config['write'] = array_intersect_key($secrets, $config['write']) + $config['write'];
         }
 
