@@ -753,7 +753,7 @@ class SqliteSchemaDialect extends SchemaDialect
             in_array($column['type'], $hasUnsigned, true) &&
             isset($column['unsigned']) &&
             $column['unsigned'] === true &&
-            ($column['type'] !== TableSchemaInterface::TYPE_INTEGER && $autoIncrement !== true)
+            ($column['type'] !== TableSchemaInterface::TYPE_INTEGER && !$autoIncrement)
         ) {
             $out .= ' UNSIGNED';
         }
@@ -799,7 +799,7 @@ class SqliteSchemaDialect extends SchemaDialect
         ];
         if (
             in_array($column['type'], $integerTypes, true) &&
-            isset($column['length']) && $autoIncrement !== true
+            isset($column['length']) && !$autoIncrement
         ) {
             $out .= '(' . (int)$column['length'] . ')';
         }
