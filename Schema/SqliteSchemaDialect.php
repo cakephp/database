@@ -491,10 +491,8 @@ class SqliteSchemaDialect extends SchemaDialect
         $indexes = [];
         $createTableSql = $this->getCreateTableSql($tableName);
 
+        $foundPrimary = false;
         foreach ($statement->fetchAll('assoc') as $row) {
-            if ($row['origin'] == 'pk') {
-                continue;
-            }
             $indexName = $row['name'];
             $indexSql = sprintf(
                 'PRAGMA index_info(%s)',
@@ -510,6 +508,10 @@ class SqliteSchemaDialect extends SchemaDialect
             if ($row['unique']) {
                 $indexType = TableSchema::CONSTRAINT_UNIQUE;
             }
+            if ($row['origin'] === 'pk') {
+                $indexType = TableSchema::CONSTRAINT_PRIMARY;
+                $foundPrimary = true;
+            }
             if ($indexType == TableSchema::CONSTRAINT_UNIQUE) {
                 $name = $this->extractIndexName($createTableSql, 'UNIQUE', $columns);
                 if ($name !== null) {
@@ -524,23 +526,25 @@ class SqliteSchemaDialect extends SchemaDialect
                 'length' => [],
             ];
         }
-        // Primary keys aren't available from the index_info pragma
+        // Primary keys aren't always available from the index_info pragma
         // instead we have to read the columns again.
-        $sql = $this->describeColumnQuery($tableName);
-        $statement = $this->_driver->execute($sql);
-        foreach ($statement->fetchAll('assoc') as $row) {
-            if (!$row['pk']) {
-                continue;
+        if (!$foundPrimary) {
+            $sql = $this->describeColumnQuery($tableName);
+            $statement = $this->_driver->execute($sql);
+            foreach ($statement->fetchAll('assoc') as $row) {
+                if (!$row['pk']) {
+                    continue;
+                }
+                if (!isset($indexes['primary'])) {
+                    $indexes['primary'] = [
+                        'name' => 'primary',
+                        'type' => TableSchema::CONSTRAINT_PRIMARY,
+                        'columns' => [],
+                        'length' => [],
+                    ];
+                }
+                $indexes['primary']['columns'][] = $row['name'];
             }
-            if (!isset($indexes['primary'])) {
-                $indexes['primary'] = [
-                    'name' => 'primary',
-                    'type' => TableSchema::CONSTRAINT_PRIMARY,
-                    'columns' => [],
-                    'length' => [],
-                ];
-            }
-            $indexes['primary']['columns'][] = $row['name'];
         }
 
         return array_values($indexes);
@@ -607,11 +611,8 @@ class SqliteSchemaDialect extends SchemaDialect
             [$config['schema'], $tableName] = explode('.', $tableName);
         }
 
-        $sql = sprintf(
-            'SELECT * FROM pragma_foreign_key_list(%s) ORDER BY id, seq',
-            $this->_driver->quoteIdentifier($tableName),
-        );
         $keys = [];
+        $sql = sprintf('PRAGMA foreign_key_list(%s)', $this->_driver->quoteIdentifier($tableName));
         $statement = $this->_driver->execute($sql);
         foreach ($statement->fetchAll('assoc') as $row) {
             $id = $row['id'];
@@ -634,7 +635,7 @@ class SqliteSchemaDialect extends SchemaDialect
         foreach ($keys as $id => $data) {
             // sqlite doesn't provide a simple way to get foreign key names, but we
             // can extract them from the normalized create table sql.
-            $name = $this->extractIndexName($createTableSql, 'FOREIGN KEY', $data['columns']);
+            $name = $this->extractIndexName($createTableSql, 'FOREIGN\s*KEY', $data['columns']);
             if ($name === null) {
                 $name = implode('_', $data['columns']) . '_' . $id . '_fk';
             }
