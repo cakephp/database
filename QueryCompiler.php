@@ -185,7 +185,7 @@ class QueryCompiler
      */
     protected function _buildSelectPart(array $parts, Query $query, ValueBinder $binder): string
     {
-        $driver = $query->getConnection()->getDriver($query->getConnectionRole());
+        $driver = $query->getDriver();
         $select = 'SELECT%s %s%s';
         if (
             ($query->clause('union') || $query->clause('intersect')) &&
