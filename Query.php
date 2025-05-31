@@ -401,28 +401,30 @@ abstract class Query implements ExpressionInterface, Stringable
      * });
      * ```
      *
-     * @param \Cake\Database\Expression\CommonTableExpression|\Closure $cte The CTE to add.
+     * @param \Cake\Database\Expression\CommonTableExpression|\Closure|array<\Cake\Database\Expression\CommonTableExpression|\Closure> $cte The CTE to add.
      * @param bool $overwrite Whether to reset the list of CTEs.
      * @return $this
      */
-    public function with(CommonTableExpression|Closure $cte, bool $overwrite = false)
+    public function with(CommonTableExpression|Closure|array $cte, bool $overwrite = false)
     {
+        $this->_dirty();
         if ($overwrite) {
             $this->_parts['with'] = [];
         }
 
-        if ($cte instanceof Closure) {
-            $query = $this->getConnection()->selectQuery();
-            $cte = $cte(new CommonTableExpression(), $query);
-            if (!($cte instanceof CommonTableExpression)) {
-                throw new CakeException(
-                    'You must return a `CommonTableExpression` from a Closure passed to `with()`.',
-                );
+        $ctes = is_array($cte) ? $cte : [$cte];
+        foreach ($ctes as $cte) {
+            if ($cte instanceof Closure) {
+                $query = $this->getConnection()->selectQuery();
+                $cte = $cte(new CommonTableExpression(), $query);
+                if (!($cte instanceof CommonTableExpression)) {
+                    throw new CakeException(
+                        'You must return a `CommonTableExpression` from a Closure passed to `with()`.',
+                    );
+                }
             }
+            $this->_parts['with'][] = $cte;
         }
-
-        $this->_parts['with'][] = $cte;
-        $this->_dirty();
 
         return $this;
     }
