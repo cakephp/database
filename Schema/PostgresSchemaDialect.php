@@ -139,7 +139,7 @@ class PostgresSchemaDialect extends SchemaDialect
             return $type;
         }
 
-        if (in_array($col, ['date', 'time', 'boolean'], true)) {
+        if (in_array($col, ['date', 'time', 'boolean', 'inet', 'cidr', 'macaddr'], true)) {
             return ['type' => $col, 'length' => null];
         }
         if (in_array($col, ['timestamptz', 'timestamp with time zone'], true)) {
@@ -672,6 +672,9 @@ class PostgresSchemaDialect extends SchemaDialect
             TableSchemaInterface::TYPE_POINT => ' GEOGRAPHY(POINT, %s)',
             TableSchemaInterface::TYPE_LINESTRING => ' GEOGRAPHY(LINESTRING, %s)',
             TableSchemaInterface::TYPE_POLYGON => ' GEOGRAPHY(POLYGON, %s)',
+            TableSchemaInterface::TYPE_CIDR => ' CIDR',
+            TableSchemaInterface::TYPE_INET => ' INET',
+            TableSchemaInterface::TYPE_MACADDR => ' MACADDR',
         ];
 
         $autoIncrementTypes = [
