@@ -742,7 +742,7 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
      */
     public function createSql(Connection $connection): array
     {
-        $dialect = $connection->getDriver()->schemaDialect();
+        $dialect = $connection->getWriteDriver()->schemaDialect();
         $columns = [];
         $constraints = [];
         $indexes = [];
@@ -764,7 +764,7 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
      */
     public function dropSql(Connection $connection): array
     {
-        $dialect = $connection->getDriver()->schemaDialect();
+        $dialect = $connection->getWriteDriver()->schemaDialect();
 
         return $dialect->dropTableSql($this);
     }
@@ -774,7 +774,7 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
      */
     public function truncateSql(Connection $connection): array
     {
-        $dialect = $connection->getDriver()->schemaDialect();
+        $dialect = $connection->getWriteDriver()->schemaDialect();
 
         return $dialect->truncateTableSql($this);
     }
@@ -784,7 +784,7 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
      */
     public function addConstraintSql(Connection $connection): array
     {
-        $dialect = $connection->getDriver()->schemaDialect();
+        $dialect = $connection->getWriteDriver()->schemaDialect();
 
         return $dialect->addConstraintSql($this);
     }
@@ -794,7 +794,7 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
      */
     public function dropConstraintSql(Connection $connection): array
     {
-        $dialect = $connection->getDriver()->schemaDialect();
+        $dialect = $connection->getWriteDriver()->schemaDialect();
 
         return $dialect->dropConstraintSql($this);
     }
