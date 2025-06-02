@@ -96,6 +96,13 @@ interface TableSchemaInterface extends SchemaInterface
     public const TYPE_TIMESTAMP_TIMEZONE = 'timestamptimezone';
 
     /**
+     * Datetime interval. Only implemented in postgres.
+     *
+     * @var string
+     */
+    public const TYPE_INTERVAL = 'interval';
+
+    /**
      * JSON column type
      *
      * @var string
@@ -115,6 +122,15 @@ interface TableSchemaInterface extends SchemaInterface
      * @var string
      */
     public const TYPE_CHAR = 'char';
+
+    /**
+     * Case-insensitive text column type.
+     *
+     * Only implemented in postgres
+     *
+     * @var string
+     */
+    public const TYPE_CITEXT = 'citext';
 
     /**
      * Text column type
