@@ -139,7 +139,7 @@ class PostgresSchemaDialect extends SchemaDialect
             return $type;
         }
 
-        if (in_array($col, ['date', 'time', 'boolean'], true)) {
+        if (in_array($col, ['date', 'time', 'boolean', 'inet', 'cidr', 'macaddr', 'citext', 'interval'], true)) {
             return ['type' => $col, 'length' => null];
         }
         if (in_array($col, ['timestamptz', 'timestamp with time zone'], true)) {
@@ -282,7 +282,11 @@ class PostgresSchemaDialect extends SchemaDialect
         $statement = $this->_driver->execute($sql, [$name, $schema, $config['database']]);
         $columns = [];
         foreach ($statement->fetchAll('assoc') as $row) {
-            $field = $this->convertColumn($row['type']);
+            $type = $row['type'];
+            if ($type === 'USER-DEFINED') {
+                $type = $row['udt_name'];
+            }
+            $field = $this->convertColumn($type);
             if ($field['type'] === TableSchemaInterface::TYPE_BOOLEAN) {
                 if ($row['default'] === 'true') {
                     $row['default'] = 1;
@@ -667,11 +671,16 @@ class PostgresSchemaDialect extends SchemaDialect
             TableSchemaInterface::TYPE_UUID => ' UUID',
             TableSchemaInterface::TYPE_NATIVE_UUID => ' UUID',
             TableSchemaInterface::TYPE_CHAR => ' CHAR',
+            TableSchemaInterface::TYPE_CITEXT => ' CITEXT',
             TableSchemaInterface::TYPE_JSON => ' JSONB',
+            TableSchemaInterface::TYPE_INTERVAL => ' INTERVAL',
             TableSchemaInterface::TYPE_GEOMETRY => ' GEOGRAPHY(GEOMETRY, %s)',
             TableSchemaInterface::TYPE_POINT => ' GEOGRAPHY(POINT, %s)',
             TableSchemaInterface::TYPE_LINESTRING => ' GEOGRAPHY(LINESTRING, %s)',
             TableSchemaInterface::TYPE_POLYGON => ' GEOGRAPHY(POLYGON, %s)',
+            TableSchemaInterface::TYPE_CIDR => ' CIDR',
+            TableSchemaInterface::TYPE_INET => ' INET',
+            TableSchemaInterface::TYPE_MACADDR => ' MACADDR',
         ];
 
         $autoIncrementTypes = [

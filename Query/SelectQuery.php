@@ -52,9 +52,10 @@ class SelectQuery extends Query implements IteratorAggregate
      */
     protected array $_parts = [
         'comment' => null,
-        'modifier' => [],
         'with' => [],
         'select' => [],
+        'optimizerHint' => [],
+        'modifier' => [],
         'distinct' => false,
         'from' => [],
         'join' => [],
