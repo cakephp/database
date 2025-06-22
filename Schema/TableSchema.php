@@ -391,6 +391,42 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
     }
 
     /**
+     * Get a column object for a given column name.
+     *
+     * Will raise an exception if the column does not exist.
+     *
+     * @param string $name The name of the column to get.
+     * @return \Cake\Database\Schema\Column
+     */
+    public function column(string $name): Column
+    {
+        if (!isset($this->_columns[$name])) {
+            $message = sprintf(
+                'Table `%s` does not contain a column named `%s`.',
+                $this->_table,
+                $name,
+            );
+            throw new DatabaseException($message);
+        }
+
+        $column = new Column();
+        $attrs = [];
+        foreach ($this->_columns[$name] as $key => $value) {
+            if ($key === 'baseType' || $value === null) {
+                continue;
+            }
+            if ($key === 'autoIncrement') {
+                $attrs['identity'] = true;
+                continue;
+            }
+            $attrs[$key] = $value;
+        }
+        $column->setAttributes($attrs);
+
+        return $column;
+    }
+
+    /**
      * @inheritDoc
      */
     public function getColumnType(string $name): ?string
