@@ -211,6 +211,7 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
         'references' => [],
         'update' => 'restrict',
         'delete' => 'restrict',
+        'constraint' => null,
     ];
 
     /**
@@ -543,7 +544,7 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
         }
         $attrs = array_intersect_key($attrs, static::$_indexKeys);
         $attrs += static::$_indexKeys;
-        unset($attrs['references'], $attrs['update'], $attrs['delete']);
+        unset($attrs['references'], $attrs['update'], $attrs['delete'], $attrs['constraint']);
 
         if (!in_array($attrs['type'], static::$_validIndexTypes, true)) {
             throw new DatabaseException(sprintf(
@@ -648,6 +649,10 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
         }
         $attrs = array_intersect_key($attrs, static::$_indexKeys);
         $attrs += static::$_indexKeys;
+        if ($attrs['constraint'] === null) {
+            unset($attrs['constraint']);
+        }
+
         if (!in_array($attrs['type'], static::$_validConstraintTypes, true)) {
             throw new DatabaseException(sprintf(
                 'Invalid constraint type `%s` in table `%s`.',
@@ -771,6 +776,55 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
     public function getConstraint(string $name): ?array
     {
         return $this->_constraints[$name] ?? null;
+    }
+
+    /**
+     * Get a constraint object for a given constraint name.
+     *
+     * Constraints have a few subtypes such as foreign keys and primary keys.
+     * You can either use `instanceof` or getType() to check for subclass types.
+     *
+     * @param string $name The name of the constraint to get.
+     * @return \Cake\Database\Schema\Constraint A constraint object.
+     */
+    public function constraint(string $name): Constraint
+    {
+        $data = $this->getConstraint($name);
+        if ($data === null) {
+            $message = sprintf(
+                'Table `%s` does not contain a constraint named `%s`.',
+                $this->_table,
+                $name,
+            );
+            throw new DatabaseException($message);
+        }
+        $data['name'] = $data['constraint'] ?? $name;
+        unset($data['constraint']);
+
+        $attrs = [];
+        foreach ($data as $key => $value) {
+            if ($value === null) {
+                continue;
+            }
+            $attrs[$key] = $value;
+        }
+
+        if ($attrs['type'] === static::CONSTRAINT_FOREIGN) {
+            $adjusted = [
+                'name' => $attrs['name'],
+                'columns' => $attrs['columns'],
+                'referencedTable' => $attrs['references'][0],
+                'referencedColumns' => (array)$attrs['references'][1],
+                'update' => $attrs['update'],
+                'delete' => $attrs['delete'],
+            ];
+            // Foreign keys don't have a length, but this key is set by abstract array form of schema data.
+            unset($attrs['length']);
+
+            return new ForeignKey(...$adjusted);
+        }
+
+        return new Constraint(...$attrs);
     }
 
     /**
