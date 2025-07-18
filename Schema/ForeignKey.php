@@ -27,10 +27,11 @@ use InvalidArgumentException;
  */
 class ForeignKey extends Constraint
 {
-    public const CASCADE = TableSchema::ACTION_CASCADE;
-    public const RESTRICT = TableSchema::ACTION_RESTRICT;
-    public const SET_NULL = TableSchema::ACTION_SET_NULL;
-    public const NO_ACTION = TableSchema::ACTION_NO_ACTION;
+    public const CASCADE = 'cascade';
+    public const RESTRICT = 'restrict';
+    public const SET_NULL = 'setNull';
+    public const NO_ACTION = 'noAction';
+    public const SET_DEFAULT = 'setDefault';
     public const DEFERRED = 'DEFERRABLE INITIALLY DEFERRED';
     public const IMMEDIATE = 'DEFERRABLE INITIALLY IMMEDIATE';
     public const NOT_DEFERRED = 'NOT DEFERRABLE';
@@ -45,6 +46,7 @@ class ForeignKey extends Constraint
         self::RESTRICT,
         self::SET_NULL,
         self::NO_ACTION,
+        self::SET_DEFAULT,
     ];
 
     /**
@@ -134,6 +136,26 @@ class ForeignKey extends Constraint
     public function getReferencedColumns(): array
     {
         return $this->referencedColumns;
+    }
+
+    /**
+     * Converts the foreign key to an array that is compatible
+     * with the constructor.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        return [
+            'name' => $this->name,
+            'type' => $this->type,
+            'columns' => $this->columns,
+            'referencedTable' => $this->referencedTable,
+            'referencedColumns' => $this->referencedColumns,
+            'delete' => $this->delete,
+            'update' => $this->update,
+            'deferrable' => $this->deferrable,
+        ];
     }
 
     /**

@@ -662,7 +662,6 @@ class SqliteSchemaDialect extends SchemaDialect
                     'references' => [$row['table'], []],
                     'update' => $this->_convertOnClause($row['on_update'] ?? ''),
                     'delete' => $this->_convertOnClause($row['on_delete'] ?? ''),
-                    'length' => [],
                     'deferrable' => null,
                 ];
             }
