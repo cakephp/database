@@ -31,12 +31,12 @@ class Index
     /**
      * @var string
      */
-    public const INDEX = TableSchema::INDEX_INDEX;
+    public const INDEX = 'index';
 
     /**
      * @var string
      */
-    public const FULLTEXT = TableSchema::INDEX_FULLTEXT;
+    public const FULLTEXT = 'fulltext';
 
     /**
      * Constructor
@@ -218,7 +218,7 @@ class Index
      * @param bool $value The concurrent mode for an index.
      * @return $this
      */
-    public function setConcurrently(bool $value)
+    public function setConcurrent(bool $value)
     {
         $this->concurrent = $value;
 
@@ -230,7 +230,7 @@ class Index
      *
      * @return bool
      */
-    public function getConcurrently(): bool
+    public function getConcurrent(): bool
     {
         return $this->concurrent;
     }
@@ -268,7 +268,7 @@ class Index
     public function setAttributes(array $attributes)
     {
         // Valid Options
-        $validOptions = ['columns', 'concurrently', 'type', 'name', 'length', 'order', 'include', 'where'];
+        $validOptions = ['columns', 'concurrent', 'type', 'name', 'length', 'order', 'include', 'where'];
         foreach ($attributes as $attr => $value) {
             if (!in_array($attr, $validOptions, true)) {
                 throw new RuntimeException(sprintf('"%s" is not a valid index option.', $attr));
@@ -278,5 +278,24 @@ class Index
         }
 
         return $this;
+    }
+
+    /**
+     * Convert an index into an array that is compatible with the Index constructor.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        return [
+            'name' => $this->getName(),
+            'columns' => $this->getColumns(),
+            'type' => $this->getType(),
+            'length' => $this->getLength(),
+            'order' => $this->getOrder(),
+            'include' => $this->getInclude(),
+            'concurrent' => $this->getConcurrent(),
+            'where' => $this->getWhere(),
+        ];
     }
 }
