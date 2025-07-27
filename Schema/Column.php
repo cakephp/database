@@ -18,6 +18,7 @@ declare(strict_types=1);
  */
 namespace Cake\Database\Schema;
 
+use Cake\Database\TypeFactory;
 use RuntimeException;
 
 /**
@@ -42,26 +43,28 @@ class Column
      * @param string|null $after Name of the column to add this column after
      * @param string|null $onUpdate MySQL 'ON UPDATE' function
      * @param string|null $comment Comment for the column
-     * @param bool $unsigned Whether the column is unsigned
+     * @param bool|null $unsigned Whether the column is unsigned
      * @param string|null $collate Collation for the column
      * @param int|null $srid SRID for geometry fields
+     * @param string|null $baseType The basic schema type if the column type is a complex/custom type.
      */
     public function __construct(
         protected string $name,
         protected string $type,
-        protected bool $null = true,
+        protected ?bool $null = null,
         protected mixed $default = null,
         protected ?int $length = null,
         protected bool $identity = false,
-        protected ?string $generated = PostgresSchemaDialect::GENERATED_BY_DEFAULT,
+        protected ?string $generated = null,
         protected ?int $precision = null,
         protected ?int $increment = null,
         protected ?string $after = null,
         protected ?string $onUpdate = null,
         protected ?string $comment = null,
-        protected bool $unsigned = true,
+        protected ?bool $unsigned = null,
         protected ?string $collate = null,
         protected ?int $srid = null,
+        protected ?string $baseType = null,
     ) {
     }
 
@@ -86,6 +89,41 @@ class Column
     public function getName(): ?string
     {
         return $this->name;
+    }
+
+    /**
+     * Get the base type if defined. Will fallback to `type` if not set.
+     *
+     * Used to get the base type of a column when the column type is a complex/custom type.
+     *
+     * @return string|null
+     */
+    public function getBaseType(): ?string
+    {
+        if (isset($this->baseType)) {
+            return $this->baseType;
+        }
+        $type = $this->type;
+        if (TypeFactory::getMap($type)) {
+            $type = TypeFactory::build($type)->getBaseType();
+        }
+
+        return $this->baseType = $type;
+    }
+
+    /**
+     * Sets the base type of the column.
+     *
+     * Used to set the base type of a column when the column type is a complex/custom type.
+     *
+     * @param string|null $baseType Base type
+     * @return $this
+     */
+    public function setBaseType(?string $baseType)
+    {
+        $this->baseType = $baseType;
+
+        return $this;
     }
 
     /**
@@ -155,9 +193,9 @@ class Column
     /**
      * Gets whether the column allows nulls.
      *
-     * @return bool
+     * @return bool|null
      */
-    public function getNull(): bool
+    public function getNull(): ?bool
     {
         return $this->null;
     }
@@ -169,7 +207,7 @@ class Column
      */
     public function isNull(): bool
     {
-        return $this->getNull();
+        return $this->getNull() === true;
     }
 
     /**
@@ -392,9 +430,9 @@ class Column
     /**
      * Gets whether field should be unsigned.
      *
-     * @return bool
+     * @return bool|null
      */
-    public function getUnsigned(): bool
+    public function getUnsigned(): ?bool
     {
         return $this->unsigned;
     }
@@ -416,7 +454,7 @@ class Column
      */
     public function isUnsigned(): bool
     {
-        return $this->getUnsigned();
+        return $this->getUnsigned() === true;
     }
 
     /**
@@ -519,8 +557,7 @@ class Column
     }
 
     /**
-     * Convert the column into the array shape
-     * used by cakephp/database.
+     * Convert an index into an array that is compatible with the Column constructor.
      *
      * @return array
      */
@@ -529,7 +566,7 @@ class Column
         $type = $this->getType();
         $length = $this->getLength();
         $precision = $this->getPrecision();
-        if ($precision !== null) {
+        if ($precision !== null && $precision > 0) {
             if ($type === TableSchemaInterface::TYPE_TIMESTAMP) {
                 $type = 'timestampfractional';
             } elseif ($type === TableSchemaInterface::TYPE_DATETIME) {
@@ -539,11 +576,13 @@ class Column
 
         return [
             'name' => $this->getName(),
+            'baseType' => $this->getBaseType(),
             'type' => $type,
             'length' => $length,
             'null' => $this->getNull(),
             'default' => $this->getDefault(),
-            'unsigned' => !$this->getUnsigned(),
+            'generated' => $this->getGenerated(),
+            'unsigned' => $this->getUnsigned(),
             'onUpdate' => $this->getOnUpdate(),
             'collate' => $this->getCollate(),
             'precision' => $precision,

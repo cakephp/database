@@ -18,7 +18,6 @@ namespace Cake\Database\Schema;
 
 use Cake\Database\Connection;
 use Cake\Database\Exception\DatabaseException;
-use Cake\Database\TypeFactory;
 
 /**
  * Represents a single table in a database schema.
@@ -43,7 +42,7 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
     /**
      * Columns in the table.
      *
-     * @var array<string, array>
+     * @var array<string, \Cake\Database\Schema\Column>
      */
     protected array $_columns = [];
 
@@ -346,7 +345,6 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
      */
     public function addColumn(string $name, $attrs)
     {
-        // TODO use index object here.
         if (is_string($attrs)) {
             $attrs = ['type' => $attrs];
         }
@@ -354,9 +352,26 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
         if (isset(static::$_columnExtras[$attrs['type']])) {
             $valid += static::$_columnExtras[$attrs['type']];
         }
+
         $attrs = array_intersect_key($attrs, $valid);
-        $this->_columns[$name] = $attrs + $valid;
-        $this->_typeMap[$name] = $this->_columns[$name]['type'];
+        $attrs['name'] = $name;
+        foreach (array_keys($attrs) as $key) {
+            $value = $attrs[$key];
+            if ($value === null) {
+                unset($attrs[$key]);
+                continue;
+            }
+            if ($key === 'autoIncrement') {
+                $attrs['identity'] = $value;
+                unset($attrs[$key]);
+                continue;
+            }
+            $attrs[$key] = $value;
+        }
+        $column = new Column(...$attrs);
+
+        $this->_columns[$name] = $column;
+        $this->_typeMap[$name] = $column->getType();
 
         return $this;
     }
@@ -388,9 +403,24 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
             return null;
         }
         $column = $this->_columns[$name];
-        unset($column['baseType']);
+        $attrs = $column->toArray();
 
-        return $column;
+        $expected = static::$_columnKeys;
+        if (isset(static::$_columnExtras[$attrs['type']])) {
+            $expected += static::$_columnExtras[$attrs['type']];
+        }
+        // Remove any attributes that weren't in the allow list.
+        // This is to provide backwards compatible keys
+        $remove = array_diff(array_keys($attrs), array_keys($expected));
+        foreach ($remove as $key) {
+            unset($attrs[$key]);
+        }
+
+        if (isset($attrs['baseType']) && $attrs['baseType'] === $attrs['type']) {
+            unset($attrs['baseType']);
+        }
+
+        return $attrs;
     }
 
     /**
@@ -403,8 +433,8 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
      */
     public function column(string $name): Column
     {
-        $data = $this->_columns[$name] ?? null;
-        if ($data === null) {
+        $column = $this->_columns[$name] ?? null;
+        if ($column === null) {
             $message = sprintf(
                 'Table `%s` does not contain a column named `%s`.',
                 $this->_table,
@@ -412,20 +442,6 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
             );
             throw new DatabaseException($message);
         }
-
-        $data['name'] = $name;
-        $attrs = [];
-        foreach ($data as $key => $value) {
-            if ($key === 'baseType' || $value === null) {
-                continue;
-            }
-            if ($key === 'autoIncrement') {
-                $attrs['identity'] = true;
-                continue;
-            }
-            $attrs[$key] = $value;
-        }
-        $column = new Column(...$attrs);
 
         return $column;
     }
@@ -439,7 +455,7 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
             return null;
         }
 
-        return $this->_columns[$name]['type'];
+        return $this->_columns[$name]->getType();
     }
 
     /**
@@ -459,10 +475,10 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
             throw new DatabaseException($message);
         }
 
-        $this->_columns[$name]['type'] = $type;
+        $this->_columns[$name]
+            ->setType($type)
+            ->setBaseType(null);
         $this->_typeMap[$name] = $type;
-
-        unset($this->_columns[$name]['baseType']);
 
         return $this;
     }
@@ -480,21 +496,11 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
      */
     public function baseColumnType(string $column): ?string
     {
-        if (isset($this->_columns[$column]['baseType'])) {
-            return $this->_columns[$column]['baseType'];
-        }
-
-        $type = $this->getColumnType($column);
-
-        if ($type === null) {
+        if (!isset($this->_columns[$column])) {
             return null;
         }
 
-        if (TypeFactory::getMap($type)) {
-            $type = TypeFactory::build($type)->getBaseType();
-        }
-
-        return $this->_columns[$column]['baseType'] = $type;
+        return $this->_columns[$column]->getBaseType();
     }
 
     /**
@@ -514,7 +520,7 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
             return true;
         }
 
-        return $this->_columns[$name]['null'] === true;
+        return $this->_columns[$name]->getNull() === true;
     }
 
     /**
@@ -523,14 +529,12 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
     public function defaultValues(): array
     {
         $defaults = [];
-        foreach ($this->_columns as $name => $data) {
-            if (!array_key_exists('default', $data)) {
+        foreach ($this->_columns as $column) {
+            $default = $column->getDefault();
+            if ($default === null && $column->getNull() !== true) {
                 continue;
             }
-            if ($data['default'] === null && $data['null'] !== true) {
-                continue;
-            }
-            $defaults[$name] = $data['default'];
+            $defaults[$column->getName()] = $default;
         }
 
         return $defaults;
@@ -756,7 +760,7 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
     public function hasAutoincrement(): bool
     {
         foreach ($this->_columns as $column) {
-            if (isset($column['autoIncrement']) && $column['autoIncrement']) {
+            if ($column->getIdentity()) {
                 return true;
             }
         }
