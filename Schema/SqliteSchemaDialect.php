@@ -463,6 +463,37 @@ class SqliteSchemaDialect extends SchemaDialect
     }
 
     /**
+     * Try to extract the deferrable clause from the table SQL.
+     *
+     * @param string $tableSql The create table statement
+     * @param array $columns The columns in the index.
+     * @return string|null The name of the unique index if it could be inferred.
+     */
+    private function extractDeferrable(string $tableSql, array $columns): ?string
+    {
+        $columnsPattern = implode(
+            '\s*,\s*',
+            array_map(
+                fn($column) => '(?:' . $this->possiblyQuotedIdentifierRegex($column) . ')',
+                $columns,
+            ),
+        );
+        $regex = "/CONSTRAINT\s*(?<name>.+?)\s*FOREIGN\s+KEY\s*\(\s*{$columnsPattern}\s*\).*?' .
+            '(?<deferable>((?:NOT\s+)?DEFERRABLE)?(?:\s+INITIALLY\s+(DEFERRED|IMMEDIATE)))?/i";
+
+        if (preg_match($regex, $tableSql, $matches)) {
+            return match ($matches['deferable']) {
+                'NOT DEFERRABLE' => ForeignKey::NOT_DEFERRED,
+                'DEFERRABLE INITIALLY DEFERRED' => ForeignKey::DEFERRED,
+                'DEFERRABLE INITIALLY IMMEDIATE' => ForeignKey::IMMEDIATE,
+                default => null,
+            };
+        }
+
+        return null;
+    }
+
+    /**
      * Get the normalized SQL query used to create a table.
      *
      * @param string $tableName The tablename
@@ -624,6 +655,7 @@ class SqliteSchemaDialect extends SchemaDialect
                     'references' => [$row['table'], []],
                     'update' => $this->convertOnClause($row['on_update'] ?? ''),
                     'delete' => $this->convertOnClause($row['on_delete'] ?? ''),
+                    'deferrable' => null,
                     'length' => [],
                 ];
             }
@@ -646,6 +678,10 @@ class SqliteSchemaDialect extends SchemaDialect
             if (count($data['references'][1]) === 1) {
                 $keys[$id]['references'][1] = $data['references'][1][0];
             }
+
+            // sqlite doesn't provide a simple way to get foreign key names, but we
+            // can extract them from the normalized create table sql.
+            $keys[$id]['deferrable'] = $this->extractDeferrable($createTableSql, $data['columns']);
         }
 
         return array_values($keys);
@@ -750,10 +786,9 @@ class SqliteSchemaDialect extends SchemaDialect
 
         $autoIncrement = (bool)($column['autoIncrement'] ?? false);
         if (
-            in_array($column['type'], $hasUnsigned, true) &&
-            isset($column['unsigned']) &&
-            $column['unsigned'] === true &&
-            ($column['type'] !== TableSchemaInterface::TYPE_INTEGER && !$autoIncrement)
+            !$autoIncrement &&
+            isset($column['unsigned']) && $column['unsigned'] === true &&
+            in_array($column['type'], $hasUnsigned, true)
         ) {
             $out .= ' UNSIGNED';
         }
@@ -880,13 +915,14 @@ class SqliteSchemaDialect extends SchemaDialect
         if ($data['type'] === TableSchema::CONSTRAINT_FOREIGN) {
             $type = 'FOREIGN KEY';
 
-            $clause = sprintf(
-                ' REFERENCES %s (%s) ON UPDATE %s ON DELETE %s',
+            $clause = rtrim(sprintf(
+                ' REFERENCES %s (%s) ON UPDATE %s ON DELETE %s %s',
                 $this->_driver->quoteIdentifier($data['references'][0]),
                 $this->convertConstraintColumns($data['references'][1]),
                 $this->foreignOnClause($data['update']),
                 $this->foreignOnClause($data['delete']),
-            );
+                $data['deferrable'] ?? null,
+            ));
         }
         $columns = array_map(
             $this->_driver->quoteIdentifier(...),
