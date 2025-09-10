@@ -589,13 +589,7 @@ class QueryExpression implements ExpressionInterface, Countable
      */
     public function hasNestedExpression(): bool
     {
-        foreach ($this->_conditions as $c) {
-            if ($c instanceof ExpressionInterface) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($this->_conditions, fn($c) => $c instanceof ExpressionInterface);
     }
 
     /**

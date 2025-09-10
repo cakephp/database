@@ -21,6 +21,7 @@ use Cake\Database\Exception\DatabaseException;
 use Cake\Database\Exception\QueryException;
 use Cake\Database\Type\ColumnSchemaAwareInterface;
 use Cake\Database\TypeFactory;
+use Deprecated;
 use InvalidArgumentException;
 use PDOException;
 use function Cake\Core\deprecationWarning;
@@ -197,8 +198,8 @@ abstract class SchemaDialect
      * @param array<string, mixed> $config The connection configuration to use for
      *    getting tables from.
      * @return array An array of (sql, params) to execute.
-     * @deprecated 5.2.0 Use `listTables()` instead.
      */
+    #[Deprecated(message: 'Use `listTables()` instead.', since: '5.2.0')]
     abstract public function listTablesSql(array $config): array;
 
     /**
@@ -207,8 +208,8 @@ abstract class SchemaDialect
      * @param string $tableName The table name to get information on.
      * @param array<string, mixed> $config The connection configuration.
      * @return array An array of (sql, params) to execute.
-     * @deprecated 5.2.0 Use `describeColumns()` instead.
      */
+    #[Deprecated(message: 'Use `describeColumns()` instead.', since: '5.2.0')]
     abstract public function describeColumnSql(string $tableName, array $config): array;
 
     /**
@@ -217,8 +218,8 @@ abstract class SchemaDialect
      * @param string $tableName The table name to get information on.
      * @param array<string, mixed> $config The connection configuration.
      * @return array An array of (sql, params) to execute.
-     * @deprecated 5.2.0 Use `describeIndexes()` instead.
      */
+    #[Deprecated(message: 'Use `describeIndexes()` instead.', since: '5.2.0')]
     abstract public function describeIndexSql(string $tableName, array $config): array;
 
     /**
@@ -227,8 +228,8 @@ abstract class SchemaDialect
      * @param string $tableName The table name to get information on.
      * @param array<string, mixed> $config The connection configuration.
      * @return array An array of (sql, params) to execute.
-     * @deprecated 5.2.0 Use `describeForeignKeys()` instead.
      */
+    #[Deprecated(message: 'Use `describeForeignKeys()` instead.', since: '5.2.0')]
     abstract public function describeForeignKeySql(string $tableName, array $config): array;
 
     /**
@@ -237,8 +238,8 @@ abstract class SchemaDialect
      * @param string $tableName Table name.
      * @param array<string, mixed> $config The connection configuration.
      * @return array SQL statements to get options for a table.
-     * @deprecated 5.2.0 Use `describeOptions()` instead.
      */
+    #[Deprecated(message: 'Use `describeOptions()` instead.', since: '5.2.0')]
     public function describeOptionsSql(string $tableName, array $config): array
     {
         return ['', ''];
@@ -250,8 +251,8 @@ abstract class SchemaDialect
      * @param \Cake\Database\Schema\TableSchema $schema The table object to append fields to.
      * @param array $row The row data from `describeColumnSql`.
      * @return void
-     * @deprecated 5.2.0 Use `describeColumns()` instead.
      */
+    #[Deprecated(message: 'Use `describeColumns()` instead.', since: '5.2.0')]
     abstract public function convertColumnDescription(TableSchema $schema, array $row): void;
 
     /**
@@ -261,8 +262,8 @@ abstract class SchemaDialect
      *    an index or constraint to.
      * @param array $row The row data from `describeIndexSql`.
      * @return void
-     * @deprecated 5.2.0 Use `describeIndexes()` instead.
      */
+    #[Deprecated(message: 'Use `describeIndexes()` instead.', since: '5.2.0')]
     abstract public function convertIndexDescription(TableSchema $schema, array $row): void;
 
     /**
@@ -272,8 +273,8 @@ abstract class SchemaDialect
      *    a constraint to.
      * @param array $row The row data from `describeForeignKeySql`.
      * @return void
-     * @deprecated 5.2.0 Use `describeForeignKeys()` instead.
      */
+    #[Deprecated(message: 'Use `describeForeignKeys()` instead.', since: '5.2.0')]
     abstract public function convertForeignKeyDescription(TableSchema $schema, array $row): void;
 
     /**
@@ -282,8 +283,8 @@ abstract class SchemaDialect
      * @param \Cake\Database\Schema\TableSchema $schema Table instance.
      * @param array $row The row of data.
      * @return void
-     * @deprecated 5.2.0 Use `describeOptions()` instead.
      */
+    #[Deprecated(message: 'Use `describeOptions()` instead.', since: '5.2.0')]
     public function convertOptionsDescription(TableSchema $schema, array $row): void
     {
     }
@@ -631,13 +632,8 @@ abstract class SchemaDialect
         } catch (PDOException | DatabaseException) {
             return false;
         }
-        foreach ($columns as $column) {
-            if ($column['name'] === $columnName) {
-                return true;
-            }
-        }
 
-        return false;
+        return array_any($columns, fn($column) => $column['name'] === $columnName);
     }
 
     /**

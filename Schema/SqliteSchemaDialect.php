@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace Cake\Database\Schema;
 
 use Cake\Database\Exception\DatabaseException;
+use Deprecated;
 use PDO;
 
 /**
@@ -383,8 +384,8 @@ class SqliteSchemaDialect extends SchemaDialect
      *    an index or constraint to.
      * @param array $row The row data from `describeIndexSql`.
      * @return void
-     * @deprecated 5.2.0 Use `describeIndexes` instead.
      */
+    #[Deprecated(message: 'Use `describeIndexes` instead.', since: '5.2.0')]
     public function convertIndexDescription(TableSchema $schema, array $row): void
     {
         // Skip auto-indexes created for non-ROWID primary keys.
