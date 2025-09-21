@@ -330,15 +330,15 @@ class SelectQuery extends Query implements IteratorAggregate
         $i = count($this->_parts['join']);
         foreach ($tables as $alias => $t) {
             if (!is_array($t)) {
-                $t = ['table' => $t, 'conditions' => $this->newExpr()];
+                $t = ['table' => $t, 'conditions' => $this->expr()];
             }
 
             if ($t['conditions'] instanceof Closure) {
-                $t['conditions'] = $t['conditions']($this->newExpr(), $this);
+                $t['conditions'] = $t['conditions']($this->expr(), $this);
             }
 
             if (!($t['conditions'] instanceof ExpressionInterface)) {
-                $t['conditions'] = $this->newExpr()->add($t['conditions'], $types);
+                $t['conditions'] = $this->expr()->add($t['conditions'], $types);
             }
             $alias = is_string($alias) ? $alias : null;
             $joins[$alias ?: $i++] = $t + ['type' => static::JOIN_TYPE_INNER, 'alias' => $alias];

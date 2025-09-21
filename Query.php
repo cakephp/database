@@ -1445,31 +1445,6 @@ abstract class Query implements ExpressionInterface, Stringable
      *
      * @param \Cake\Database\ExpressionInterface|array|string|null $rawExpression A string, array or anything you want wrapped in an expression object
      * @return \Cake\Database\Expression\QueryExpression
-     * @deprecated 5.3.0 Use `expr()` instead of `newExpr()`.
-     */
-    public function newExpr(ExpressionInterface|array|string|null $rawExpression = null): QueryExpression
-    {
-        deprecationWarning('5.3.0', 'Use `expr()` instead of `newExpr()`.');
-
-        return $this->expr($rawExpression);
-    }
-
-    /**
-     * Returns a new QueryExpression object. This is a handy function when
-     * building complex queries using a fluent interface. You can also override
-     * this function in subclasses to use a more specialized QueryExpression class
-     * if required.
-     *
-     * You can optionally pass a single raw SQL string or an array or expressions in
-     * any format accepted by \Cake\Database\Expression\QueryExpression:
-     *
-     * ```
-     * $expression = $query->expr(); // Returns an empty expression object
-     * $expression = $query->expr('Table.column = Table2.column'); // Return a raw SQL expression
-     * ```
-     *
-     * @param \Cake\Database\ExpressionInterface|array|string|null $rawExpression A string, array or anything you want wrapped in an expression object
-     * @return \Cake\Database\Expression\QueryExpression
      */
     public function expr(ExpressionInterface|array|string|null $rawExpression = null): QueryExpression
     {
