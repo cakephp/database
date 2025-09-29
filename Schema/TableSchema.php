@@ -532,7 +532,7 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
         $defaults = [];
         foreach ($this->_columns as $column) {
             $default = $column->getDefault();
-            if ($default === null && $column->getNull() !== true) {
+            if ($default === null && $column->getNull() !== true && $column->getName()) {
                 continue;
             }
             $defaults[$column->getName()] = $default;
