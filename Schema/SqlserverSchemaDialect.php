@@ -827,10 +827,11 @@ class SqlserverSchemaDialect extends SchemaDialect
             (array)$index->getColumns(),
         );
         $include = '';
-        if ($index->getInclude()) {
+        $included = $index->getInclude();
+        if ($included !== null) {
             $included = array_map(
                 $this->_driver->quoteIdentifier(...),
-                $index->getInclude(),
+                $included,
             );
             $include = sprintf(' INCLUDE (%s)', implode(', ', $included));
         }
