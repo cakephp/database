@@ -26,5 +26,5 @@ class DatabaseException extends CakeException
     /**
      * @inheritDoc
      */
-    protected string $_messageTemplate = '%s';
+    protected string $messageTemplate = '%s';
 }
