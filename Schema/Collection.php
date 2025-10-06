@@ -33,14 +33,14 @@ class Collection implements CollectionInterface
      *
      * @var \Cake\Database\Connection
      */
-    protected Connection $_connection;
+    protected Connection $connection;
 
     /**
      * Schema dialect instance.
      *
      * @var \Cake\Database\Schema\SchemaDialect|null
      */
-    protected ?SchemaDialect $_dialect = null;
+    protected ?SchemaDialect $dialect = null;
 
     /**
      * Constructor.
@@ -49,7 +49,7 @@ class Collection implements CollectionInterface
      */
     public function __construct(Connection $connection)
     {
-        $this->_connection = $connection;
+        $this->connection = $connection;
     }
 
     /**
@@ -94,6 +94,6 @@ class Collection implements CollectionInterface
      */
     protected function getDialect(): SchemaDialect
     {
-        return $this->_dialect ??= $this->_connection->getWriteDriver()->schemaDialect();
+        return $this->dialect ??= $this->connection->getWriteDriver()->schemaDialect();
     }
 }

@@ -39,7 +39,7 @@ class FunctionExpression extends QueryExpression implements TypedResultInterface
      *
      * @var string
      */
-    protected string $_name;
+    protected string $name;
 
     /**
      * Constructor. Takes a name for the function to be invoked and a list of params
@@ -68,8 +68,8 @@ class FunctionExpression extends QueryExpression implements TypedResultInterface
      */
     public function __construct(string $name, array $params = [], array $types = [], string $returnType = 'string')
     {
-        $this->_name = $name;
-        $this->_returnType = $returnType;
+        $this->name = $name;
+        $this->returnType = $returnType;
         parent::__construct($params, $types, ',');
     }
 
@@ -81,7 +81,7 @@ class FunctionExpression extends QueryExpression implements TypedResultInterface
      */
     public function setName(string $name): static
     {
-        $this->_name = $name;
+        $this->name = $name;
 
         return $this;
     }
@@ -93,7 +93,7 @@ class FunctionExpression extends QueryExpression implements TypedResultInterface
      */
     public function getName(): string
     {
-        return $this->_name;
+        return $this->name;
     }
 
     /**
@@ -114,12 +114,12 @@ class FunctionExpression extends QueryExpression implements TypedResultInterface
         /** @var array $conditions */
         foreach ($conditions as $k => $p) {
             if ($p === 'literal') {
-                $put($this->_conditions, $k);
+                $put($this->conditions, $k);
                 continue;
             }
 
             if ($p === 'identifier') {
-                $put($this->_conditions, new IdentifierExpression($k));
+                $put($this->conditions, new IdentifierExpression($k));
                 continue;
             }
 
@@ -130,11 +130,11 @@ class FunctionExpression extends QueryExpression implements TypedResultInterface
             }
 
             if ($p instanceof ExpressionInterface) {
-                $put($this->_conditions, $p);
+                $put($this->conditions, $p);
                 continue;
             }
 
-            $put($this->_conditions, ['value' => $p, 'type' => $type]);
+            $put($this->conditions, ['value' => $p, 'type' => $type]);
         }
 
         return $this;
@@ -146,7 +146,7 @@ class FunctionExpression extends QueryExpression implements TypedResultInterface
     public function sql(ValueBinder $binder): string
     {
         $parts = [];
-        foreach ($this->_conditions as $condition) {
+        foreach ($this->conditions as $condition) {
             if ($condition instanceof Query) {
                 $condition = sprintf('(%s)', $condition->sql($binder));
             } elseif ($condition instanceof ExpressionInterface) {
@@ -159,8 +159,8 @@ class FunctionExpression extends QueryExpression implements TypedResultInterface
             $parts[] = $condition;
         }
 
-        return $this->_name . sprintf('(%s)', implode(
-            $this->_conjunction . ' ',
+        return $this->name . sprintf('(%s)', implode(
+            $this->conjunction . ' ',
             $parts,
         ));
     }
@@ -173,6 +173,6 @@ class FunctionExpression extends QueryExpression implements TypedResultInterface
      */
     public function count(): int
     {
-        return 1 + count($this->_conditions);
+        return 1 + count($this->conditions);
     }
 }

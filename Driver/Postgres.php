@@ -42,7 +42,7 @@ class Postgres extends Driver
      *
      * @var array<string, mixed>
      */
-    protected array $_baseConfig = [
+    protected array $baseConfig = [
         'persistent' => true,
         'host' => 'localhost',
         'username' => null,
@@ -66,14 +66,14 @@ class Postgres extends Driver
      *
      * @var string
      */
-    protected string $_startQuote = '"';
+    protected string $startQuote = '"';
 
     /**
      * String used to end a database identifier quoting to make it safe
      *
      * @var string
      */
-    protected string $_endQuote = '"';
+    protected string $endQuote = '"';
 
     /**
      * @inheritDoc
@@ -84,7 +84,7 @@ class Postgres extends Driver
             return;
         }
 
-        $config = $this->_config;
+        $config = $this->config;
 
         if (empty($config['database'])) {
             throw new DatabaseException('Missing "database" name to connect to.');
@@ -102,21 +102,21 @@ class Postgres extends Driver
             $dsn = "pgsql:dbname={$config['database']}";
         }
 
-        if ($this->_config['ssl']) {
-            if ($this->_config['ssl_mode']) {
-                $dsn .= ';sslmode=' . $this->_config['ssl_mode'];
+        if ($this->config['ssl']) {
+            if ($this->config['ssl_mode']) {
+                $dsn .= ';sslmode=' . $this->config['ssl_mode'];
             } else {
                 $dsn .= ';sslmode=allow';
             }
 
-            if ($this->_config['ssl_key']) {
-                $dsn .= ';sslkey=' . $this->_config['ssl_key'];
+            if ($this->config['ssl_key']) {
+                $dsn .= ';sslkey=' . $this->config['ssl_key'];
             }
-            if ($this->_config['ssl_cert']) {
-                $dsn .= ';sslcert=' . $this->_config['ssl_cert'];
+            if ($this->config['ssl_cert']) {
+                $dsn .= ';sslcert=' . $this->config['ssl_cert'];
             }
-            if ($this->_config['ssl_ca']) {
-                $dsn .= ';sslrootcert=' . $this->_config['ssl_ca'];
+            if ($this->config['ssl_ca']) {
+                $dsn .= ';sslrootcert=' . $this->config['ssl_ca'];
             }
         }
 
@@ -154,7 +154,7 @@ class Postgres extends Driver
      */
     public function schemaDialect(): SchemaDialect
     {
-        return $this->_schemaDialect ?? ($this->_schemaDialect = new PostgresSchemaDialect($this));
+        return $this->schemaDialect ?? ($this->schemaDialect = new PostgresSchemaDialect($this));
     }
 
     /**

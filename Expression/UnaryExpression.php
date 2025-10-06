@@ -44,14 +44,14 @@ class UnaryExpression implements ExpressionInterface
      *
      * @var string
      */
-    protected string $_operator;
+    protected string $operator;
 
     /**
      * Holds the value which the unary expression operates
      *
      * @var mixed
      */
-    protected mixed $_value;
+    protected mixed $value;
 
     /**
      * Where to place the operator
@@ -69,8 +69,8 @@ class UnaryExpression implements ExpressionInterface
      */
     public function __construct(string $operator, mixed $value, int $position = self::PREFIX)
     {
-        $this->_operator = $operator;
-        $this->_value = $value;
+        $this->operator = $operator;
+        $this->value = $value;
         $this->position = $position;
     }
 
@@ -79,16 +79,16 @@ class UnaryExpression implements ExpressionInterface
      */
     public function sql(ValueBinder $binder): string
     {
-        $operand = $this->_value;
+        $operand = $this->value;
         if ($operand instanceof ExpressionInterface) {
             $operand = $operand->sql($binder);
         }
 
         if ($this->position === self::POSTFIX) {
-            return '(' . $operand . ') ' . $this->_operator;
+            return '(' . $operand . ') ' . $this->operator;
         }
 
-        return $this->_operator . ' (' . $operand . ')';
+        return $this->operator . ' (' . $operand . ')';
     }
 
     /**
@@ -96,9 +96,9 @@ class UnaryExpression implements ExpressionInterface
      */
     public function traverse(Closure $callback): static
     {
-        if ($this->_value instanceof ExpressionInterface) {
-            $callback($this->_value);
-            $this->_value->traverse($callback);
+        if ($this->value instanceof ExpressionInterface) {
+            $callback($this->value);
+            $this->value->traverse($callback);
         }
 
         return $this;
@@ -111,8 +111,8 @@ class UnaryExpression implements ExpressionInterface
      */
     public function __clone(): void
     {
-        if ($this->_value instanceof ExpressionInterface) {
-            $this->_value = clone $this->_value;
+        if ($this->value instanceof ExpressionInterface) {
+            $this->value = clone $this->value;
         }
     }
 }

@@ -79,7 +79,7 @@ abstract class Driver implements LoggerAwareInterface
      *
      * @var array<string, mixed>
      */
-    protected array $_config = [];
+    protected array $config = [];
 
     /**
      * Base configuration that is merged into the user
@@ -87,7 +87,7 @@ abstract class Driver implements LoggerAwareInterface
      *
      * @var array<string, mixed>
      */
-    protected array $_baseConfig = [];
+    protected array $baseConfig = [];
 
     /**
      * Indicates whether the driver is doing automatic identifier quoting
@@ -95,21 +95,21 @@ abstract class Driver implements LoggerAwareInterface
      *
      * @var bool
      */
-    protected bool $_autoQuoting = false;
+    protected bool $autoQuoting = false;
 
     /**
      * String used to start a database identifier quoting to make it safe
      *
      * @var string
      */
-    protected string $_startQuote = '';
+    protected string $startQuote = '';
 
     /**
      * String used to end a database identifier quoting to make it safe
      *
      * @var string
      */
-    protected string $_endQuote = '';
+    protected string $endQuote = '';
 
     /**
      * Identifier quoter
@@ -123,7 +123,7 @@ abstract class Driver implements LoggerAwareInterface
      *
      * @var string|null
      */
-    protected ?string $_version = null;
+    protected ?string $version = null;
 
     /**
      * Whether to log queries generated during this connection.
@@ -144,7 +144,7 @@ abstract class Driver implements LoggerAwareInterface
      *
      * @var \Cake\Database\Schema\SchemaDialect
      */
-    protected SchemaDialect $_schemaDialect;
+    protected SchemaDialect $schemaDialect;
 
     /**
      * Constructor
@@ -159,8 +159,8 @@ abstract class Driver implements LoggerAwareInterface
                 'Please pass "username" instead of "login" for connecting to the database',
             );
         }
-        $config += $this->_baseConfig + ['log' => false];
-        $this->_config = $config;
+        $config += $this->baseConfig + ['log' => false];
+        $this->config = $config;
         if (!empty($config['quoteIdentifiers'])) {
             $this->enableAutoQuoting();
         }
@@ -177,7 +177,7 @@ abstract class Driver implements LoggerAwareInterface
      */
     public function config(): array
     {
-        return $this->_config;
+        return $this->config;
     }
 
     /**
@@ -229,7 +229,7 @@ abstract class Driver implements LoggerAwareInterface
     public function disconnect(): void
     {
         $this->pdo = null;
-        $this->_version = null;
+        $this->version = null;
     }
 
     /**
@@ -239,7 +239,7 @@ abstract class Driver implements LoggerAwareInterface
      */
     public function version(): string
     {
-        return $this->_version ??= (string)$this->getPdo()->getAttribute(PDO::ATTR_SERVER_VERSION);
+        return $this->version ??= (string)$this->getPdo()->getAttribute(PDO::ATTR_SERVER_VERSION);
     }
 
     /**
@@ -777,7 +777,7 @@ abstract class Driver implements LoggerAwareInterface
      */
     public function quoter(): IdentifierQuoter
     {
-        return $this->quoter ??= new IdentifierQuoter($this->_startQuote, $this->_endQuote);
+        return $this->quoter ??= new IdentifierQuoter($this->startQuote, $this->endQuote);
     }
 
     /**
@@ -828,7 +828,7 @@ abstract class Driver implements LoggerAwareInterface
      */
     public function schema(): string
     {
-        return $this->_config['schema'];
+        return $this->config['schema'];
     }
 
     /**
@@ -869,7 +869,7 @@ abstract class Driver implements LoggerAwareInterface
      */
     public function enableAutoQuoting(bool $enable = true): static
     {
-        $this->_autoQuoting = $enable;
+        $this->autoQuoting = $enable;
 
         return $this;
     }
@@ -881,7 +881,7 @@ abstract class Driver implements LoggerAwareInterface
      */
     public function disableAutoQuoting(): static
     {
-        $this->_autoQuoting = false;
+        $this->autoQuoting = false;
 
         return $this;
     }
@@ -894,7 +894,7 @@ abstract class Driver implements LoggerAwareInterface
      */
     public function isAutoQuotingEnabled(): bool
     {
-        return $this->_autoQuoting;
+        return $this->autoQuoting;
     }
 
     /**
@@ -941,7 +941,7 @@ abstract class Driver implements LoggerAwareInterface
     public function newTableSchema(string $table, array $columns = []): TableSchemaInterface
     {
         /** @var class-string<\Cake\Database\Schema\TableSchemaInterface> $className */
-        $className = $this->_config['tableSchema'] ?? TableSchema::class;
+        $className = $this->config['tableSchema'] ?? TableSchema::class;
 
         return new $className($table, $columns);
     }
@@ -1019,7 +1019,7 @@ abstract class Driver implements LoggerAwareInterface
      */
     public function getRole(): string
     {
-        return $this->_config['_role'] ?? Connection::ROLE_WRITE;
+        return $this->config['_role'] ?? Connection::ROLE_WRITE;
     }
 
     /**

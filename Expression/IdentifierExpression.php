@@ -35,7 +35,7 @@ class IdentifierExpression implements ExpressionInterface
      *
      * @var string
      */
-    protected string $_identifier;
+    protected string $identifier;
 
     /**
      * @var string|null
@@ -50,7 +50,7 @@ class IdentifierExpression implements ExpressionInterface
      */
     public function __construct(string $identifier, ?string $collation = null)
     {
-        $this->_identifier = $identifier;
+        $this->identifier = $identifier;
         $this->collation = $collation;
     }
 
@@ -62,7 +62,7 @@ class IdentifierExpression implements ExpressionInterface
      */
     public function setIdentifier(string $identifier): void
     {
-        $this->_identifier = $identifier;
+        $this->identifier = $identifier;
     }
 
     /**
@@ -72,7 +72,7 @@ class IdentifierExpression implements ExpressionInterface
      */
     public function getIdentifier(): string
     {
-        return $this->_identifier;
+        return $this->identifier;
     }
 
     /**
@@ -101,7 +101,7 @@ class IdentifierExpression implements ExpressionInterface
      */
     public function sql(ValueBinder $binder): string
     {
-        $sql = $this->_identifier;
+        $sql = $this->identifier;
         if ($this->collation) {
             $sql .= ' COLLATE ' . $this->collation;
         }

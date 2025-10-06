@@ -52,7 +52,7 @@ class Mysql extends Driver
      *
      * @var array<string, mixed>
      */
-    protected array $_baseConfig = [
+    protected array $baseConfig = [
         'persistent' => true,
         'host' => 'localhost',
         'username' => null,
@@ -70,14 +70,14 @@ class Mysql extends Driver
      *
      * @var string
      */
-    protected string $_startQuote = '`';
+    protected string $startQuote = '`';
 
     /**
      * String used to end a database identifier quoting to make it safe
      *
      * @var string
      */
-    protected string $_endQuote = '`';
+    protected string $endQuote = '`';
 
     /**
      * Server type.
@@ -119,7 +119,7 @@ class Mysql extends Driver
         if ($this->pdo !== null) {
             return;
         }
-        $config = $this->_config;
+        $config = $this->config;
 
         if (empty($config['database'])) {
             throw new DatabaseException('Missing "database" name to connect to.');
@@ -203,7 +203,7 @@ class Mysql extends Driver
      */
     public function schemaDialect(): SchemaDialect
     {
-        return $this->_schemaDialect ?? ($this->_schemaDialect = new MysqlSchemaDialect($this));
+        return $this->schemaDialect ?? ($this->schemaDialect = new MysqlSchemaDialect($this));
     }
 
     /**
@@ -211,7 +211,7 @@ class Mysql extends Driver
      */
     public function schema(): string
     {
-        return $this->_config['database'];
+        return $this->config['database'];
     }
 
     /**
@@ -280,16 +280,16 @@ class Mysql extends Driver
      */
     public function version(): string
     {
-        if ($this->_version === null) {
-            $this->_version = (string)$this->getPdo()->getAttribute(PDO::ATTR_SERVER_VERSION);
+        if ($this->version === null) {
+            $this->version = (string)$this->getPdo()->getAttribute(PDO::ATTR_SERVER_VERSION);
 
-            if (str_contains($this->_version, 'MariaDB')) {
+            if (str_contains($this->version, 'MariaDB')) {
                 $this->serverType = static::SERVER_TYPE_MARIADB;
-                preg_match('/^(?:5\.5\.5-)?(\d+\.\d+\.\d+.*-MariaDB[^:]*)/', $this->_version, $matches);
-                $this->_version = $matches[1];
+                preg_match('/^(?:5\.5\.5-)?(\d+\.\d+\.\d+.*-MariaDB[^:]*)/', $this->version, $matches);
+                $this->version = $matches[1];
             }
         }
 
-        return $this->_version;
+        return $this->version;
     }
 }

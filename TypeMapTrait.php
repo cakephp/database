@@ -27,7 +27,7 @@ trait TypeMapTrait
     /**
      * @var \Cake\Database\TypeMap|null
      */
-    protected ?TypeMap $_typeMap = null;
+    protected ?TypeMap $typeMap = null;
 
     /**
      * Creates a new TypeMap if $typeMap is an array, otherwise exchanges it for the given one.
@@ -37,7 +37,7 @@ trait TypeMapTrait
      */
     public function setTypeMap(TypeMap|array $typeMap): static
     {
-        $this->_typeMap = is_array($typeMap) ? new TypeMap($typeMap) : $typeMap;
+        $this->typeMap = is_array($typeMap) ? new TypeMap($typeMap) : $typeMap;
 
         return $this;
     }
@@ -49,7 +49,7 @@ trait TypeMapTrait
      */
     public function getTypeMap(): TypeMap
     {
-        return $this->_typeMap ??= new TypeMap();
+        return $this->typeMap ??= new TypeMap();
     }
 
     /**

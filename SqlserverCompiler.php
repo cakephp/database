@@ -32,7 +32,7 @@ class SqlserverCompiler extends QueryCompiler
      *
      * @var array<string, string>
      */
-    protected array $_templates = [
+    protected array $templates = [
         'delete' => 'DELETE',
         'where' => ' WHERE %s',
         'group' => ' GROUP BY %s',
@@ -47,7 +47,7 @@ class SqlserverCompiler extends QueryCompiler
      *
      * @var array<string>
      */
-    protected array $_selectParts = [
+    protected array $selectParts = [
         'comment', 'with', 'select', 'from', 'join', 'where', 'group', 'having', 'window', 'order',
         'offset', 'limit', 'union', 'epilog', 'intersect',
     ];

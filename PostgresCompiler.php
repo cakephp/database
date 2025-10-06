@@ -33,14 +33,14 @@ class PostgresCompiler extends QueryCompiler
      *
      * @var bool
      */
-    protected bool $_quotedSelectAliases = true;
+    protected bool $quotedSelectAliases = true;
 
     /**
      * {@inheritDoc}
      *
      * @var array<string, string>
      */
-    protected array $_templates = [
+    protected array $templates = [
         'delete' => 'DELETE',
         'where' => ' WHERE %s',
         'group' => ' GROUP BY %s',

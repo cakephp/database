@@ -30,14 +30,14 @@ class ValueBinder
      *
      * @var array
      */
-    protected array $_bindings = [];
+    protected array $bindings = [];
 
     /**
      * A counter of parameters bound in this expression object
      *
      * @var int
      */
-    protected int $_bindingsCount = 0;
+    protected int $bindingsCount = 0;
 
     /**
      * Associates a query placeholder to a value and a type
@@ -51,7 +51,7 @@ class ValueBinder
      */
     public function bind(string|int $param, mixed $value, string|int|null $type = null): void
     {
-        $this->_bindings[$param] = compact('value', 'type') + [
+        $this->bindings[$param] = compact('value', 'type') + [
             'placeholder' => is_int($param) ? $param : substr($param, 1),
         ];
     }
@@ -67,7 +67,7 @@ class ValueBinder
      */
     public function placeholder(string $token): string
     {
-        $number = $this->_bindingsCount++;
+        $number = $this->bindingsCount++;
         if (!str_starts_with($token, ':') && $token !== '?') {
             return sprintf(':%s%s', $token, $number);
         }
@@ -88,7 +88,7 @@ class ValueBinder
         $placeholders = [];
         foreach ($values as $k => $value) {
             $param = $this->placeholder('c');
-            $this->_bindings[$param] = [
+            $this->bindings[$param] = [
                 'value' => $value,
                 'type' => $type,
                 'placeholder' => substr($param, 1),
@@ -107,7 +107,7 @@ class ValueBinder
      */
     public function bindings(): array
     {
-        return $this->_bindings;
+        return $this->bindings;
     }
 
     /**
@@ -117,8 +117,8 @@ class ValueBinder
      */
     public function reset(): void
     {
-        $this->_bindings = [];
-        $this->_bindingsCount = 0;
+        $this->bindings = [];
+        $this->bindingsCount = 0;
     }
 
     /**
@@ -128,7 +128,7 @@ class ValueBinder
      */
     public function resetCount(): void
     {
-        $this->_bindingsCount = 0;
+        $this->bindingsCount = 0;
     }
 
     /**

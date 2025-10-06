@@ -35,14 +35,14 @@ class TimeType extends BaseType implements BatchCastingInterface
      *
      * @var string
      */
-    protected string $_format = 'H:i:s';
+    protected string $format = 'H:i:s';
 
     /**
      * Whether `marshal()` should use locale-aware parser with `_localeMarshalFormat`.
      *
      * @var bool
      */
-    protected bool $_useLocaleMarshal = false;
+    protected bool $useLocaleMarshal = false;
 
     /**
      * The locale-aware format `marshal()` uses when `_useLocaleParser` is true.
@@ -51,14 +51,14 @@ class TimeType extends BaseType implements BatchCastingInterface
      *
      * @var string|int|null
      */
-    protected string|int|null $_localeMarshalFormat = null;
+    protected string|int|null $localeMarshalFormat = null;
 
     /**
      * The classname to use when creating objects.
      *
      * @var class-string<\Cake\Chronos\ChronosTime>
      */
-    protected string $_className;
+    protected string $className;
 
     /**
      * Constructor
@@ -74,7 +74,7 @@ class TimeType extends BaseType implements BatchCastingInterface
             $className = class_exists(Time::class) ? Time::class : ChronosTime::class;
         }
 
-        $this->_className = $className;
+        $this->className = $className;
     }
 
     /**
@@ -85,16 +85,16 @@ class TimeType extends BaseType implements BatchCastingInterface
      */
     public function marshal(mixed $value): ?ChronosTime
     {
-        if ($value instanceof $this->_className) {
+        if ($value instanceof $this->className) {
             return $value;
         }
 
         if ($value instanceof DateTimeInterface || $value instanceof ChronosTime) {
-            return new $this->_className($value->format($this->_format));
+            return new $this->className($value->format($this->format));
         }
 
         if (is_string($value)) {
-            if ($this->_useLocaleMarshal) {
+            if ($this->useLocaleMarshal) {
                 return $this->parseLocalTimeValue($value);
             }
 
@@ -127,7 +127,7 @@ class TimeType extends BaseType implements BatchCastingInterface
             $value['microsecond'],
         );
 
-        return new $this->_className($format);
+        return new $this->className($format);
     }
 
     /**
@@ -141,7 +141,7 @@ class TimeType extends BaseType implements BatchCastingInterface
             }
 
             $value = $values[$field];
-            $instance = new $this->_className($value);
+            $instance = new $this->className($value);
             $values[$field] = $instance;
         }
 
@@ -163,7 +163,7 @@ class TimeType extends BaseType implements BatchCastingInterface
 
         assert(method_exists($value, 'format'));
 
-        return $value->format($this->_format);
+        return $value->format($this->format);
     }
 
     /**
@@ -179,7 +179,7 @@ class TimeType extends BaseType implements BatchCastingInterface
             return null;
         }
 
-        return new $this->_className($value);
+        return new $this->className($value);
     }
 
     /**
@@ -189,7 +189,7 @@ class TimeType extends BaseType implements BatchCastingInterface
      */
     public function getTimeClassName(): string
     {
-        return $this->_className;
+        return $this->className;
     }
 
     /**
@@ -201,7 +201,7 @@ class TimeType extends BaseType implements BatchCastingInterface
     protected function parseTimeValue(string $value): ?ChronosTime
     {
         try {
-            return $this->_className::parse($value);
+            return $this->className::parse($value);
         } catch (InvalidArgumentException) {
             return null;
         }
@@ -216,9 +216,9 @@ class TimeType extends BaseType implements BatchCastingInterface
      */
     protected function parseLocalTimeValue(string $value): ?ChronosTime
     {
-        assert(is_a($this->_className, Time::class, true));
+        assert(is_a($this->className, Time::class, true));
 
-        return $this->_className::parseTime($value, $this->_localeMarshalFormat);
+        return $this->className::parseTime($value, $this->localeMarshalFormat);
     }
 
     /**
@@ -232,12 +232,12 @@ class TimeType extends BaseType implements BatchCastingInterface
     {
         if (
             $enable &&
-            ($this->_className !== Time::class && !is_subclass_of($this->_className, Time::class))
+            ($this->className !== Time::class && !is_subclass_of($this->className, Time::class))
         ) {
             throw new CakeException('You must install the `cakephp/i18n` package to use locale aware parsing.');
         }
 
-        $this->_useLocaleMarshal = $enable;
+        $this->useLocaleMarshal = $enable;
 
         return $this;
     }
@@ -253,7 +253,7 @@ class TimeType extends BaseType implements BatchCastingInterface
      */
     public function setLocaleFormat(string|int|null $format): static
     {
-        $this->_localeMarshalFormat = $format;
+        $this->localeMarshalFormat = $format;
 
         return $this;
     }

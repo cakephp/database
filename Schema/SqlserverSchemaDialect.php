@@ -263,7 +263,7 @@ class SqlserverSchemaDialect extends SchemaDialect
      */
     private function splitTablename(string $tableName): array
     {
-        $config = $this->_driver->config();
+        $config = $this->driver->config();
         $schema = $config['schema'] ?? static::DEFAULT_SCHEMA_NAME;
         if (str_contains($tableName, '.')) {
             return explode('.', $tableName);
@@ -280,7 +280,7 @@ class SqlserverSchemaDialect extends SchemaDialect
         [$schema, $name] = $this->splitTablename($tableName);
 
         $sql = $this->describeColumnQuery();
-        $statement = $this->_driver->execute($sql, [$name, $schema]);
+        $statement = $this->driver->execute($sql, [$name, $schema]);
         $columns = [];
         foreach ($statement->fetchAll('assoc') as $row) {
             $field = $this->convertColumn(
@@ -427,7 +427,7 @@ class SqlserverSchemaDialect extends SchemaDialect
         [$schema, $name] = $this->splitTablename($tableName);
         $sql = $this->describeIndexQuery();
         $indexes = [];
-        $statement = $this->_driver->execute($sql, [$name, $schema]);
+        $statement = $this->driver->execute($sql, [$name, $schema]);
         foreach ($statement->fetchAll('assoc') as $row) {
             $type = TableSchema::INDEX_INDEX;
             $name = $row['index_name'];
@@ -497,7 +497,7 @@ class SqlserverSchemaDialect extends SchemaDialect
         [$schema, $name] = $this->splitTablename($tableName);
         $sql = $this->describeForeignKeyQuery();
         $keys = [];
-        $statement = $this->_driver->execute($sql, [$name, $schema]);
+        $statement = $this->driver->execute($sql, [$name, $schema]);
         foreach ($statement->fetchAll('assoc') as $row) {
             $name = $row['foreign_key_name'];
             if (!isset($keys[$name])) {
@@ -625,7 +625,7 @@ class SqlserverSchemaDialect extends SchemaDialect
             'length' => null,
             'precision' => null,
         ];
-        $out = $this->_driver->quoteIdentifier($name);
+        $out = $this->driver->quoteIdentifier($name);
         $typeMap = [
             TableSchemaInterface::TYPE_TINYINTEGER => ' TINYINT',
             TableSchemaInterface::TYPE_SMALLINTEGER => ' SMALLINT',
@@ -771,7 +771,7 @@ class SqlserverSchemaDialect extends SchemaDialect
         } elseif (isset($column['default'])) {
             $default = is_bool($column['default'])
                 ? (int)$column['default']
-                : $this->_driver->schemaValue($column['default']);
+                : $this->driver->schemaValue($column['default']);
             $out .= ' DEFAULT ' . $default;
         } elseif (isset($column['null']) && $column['null'] !== false) {
             $out .= ' DEFAULT NULL';
@@ -792,7 +792,7 @@ class SqlserverSchemaDialect extends SchemaDialect
             $constraint = $schema->getConstraint($name);
             assert($constraint !== null);
             if ($constraint['type'] === TableSchema::CONSTRAINT_FOREIGN) {
-                $tableName = $this->_driver->quoteIdentifier($schema->name());
+                $tableName = $this->driver->quoteIdentifier($schema->name());
                 $sql[] = sprintf($sqlPattern, $tableName, $this->constraintSql($schema, $name));
             }
         }
@@ -812,8 +812,8 @@ class SqlserverSchemaDialect extends SchemaDialect
             $constraint = $schema->getConstraint($name);
             assert($constraint !== null);
             if ($constraint['type'] === TableSchema::CONSTRAINT_FOREIGN) {
-                $tableName = $this->_driver->quoteIdentifier($schema->name());
-                $constraintName = $this->_driver->quoteIdentifier($name);
+                $tableName = $this->driver->quoteIdentifier($schema->name());
+                $constraintName = $this->driver->quoteIdentifier($name);
                 $sql[] = sprintf($sqlPattern, $tableName, $constraintName);
             }
         }
@@ -828,14 +828,14 @@ class SqlserverSchemaDialect extends SchemaDialect
     {
         $index = $schema->index($name);
         $columns = array_map(
-            $this->_driver->quoteIdentifier(...),
+            $this->driver->quoteIdentifier(...),
             (array)$index->getColumns(),
         );
         $include = '';
         $included = $index->getInclude();
         if ($included !== null) {
             $included = array_map(
-                $this->_driver->quoteIdentifier(...),
+                $this->driver->quoteIdentifier(...),
                 $included,
             );
             $include = sprintf(' INCLUDE (%s)', implode(', ', $included));
@@ -843,8 +843,8 @@ class SqlserverSchemaDialect extends SchemaDialect
 
         return sprintf(
             'CREATE INDEX %s ON %s (%s)%s',
-            $this->_driver->quoteIdentifier($name),
-            $this->_driver->quoteIdentifier($schema->name()),
+            $this->driver->quoteIdentifier($name),
+            $this->driver->quoteIdentifier($schema->name()),
             implode(', ', $columns),
             $include,
         );
@@ -857,7 +857,7 @@ class SqlserverSchemaDialect extends SchemaDialect
     {
         $data = $schema->getConstraint($name);
         assert($data !== null);
-        $out = 'CONSTRAINT ' . $this->_driver->quoteIdentifier($name);
+        $out = 'CONSTRAINT ' . $this->driver->quoteIdentifier($name);
         if ($data['type'] === TableSchema::CONSTRAINT_PRIMARY) {
             $out = 'PRIMARY KEY';
         }
@@ -878,14 +878,14 @@ class SqlserverSchemaDialect extends SchemaDialect
     protected function keySql(string $prefix, array $data): string
     {
         $columns = array_map(
-            $this->_driver->quoteIdentifier(...),
+            $this->driver->quoteIdentifier(...),
             $data['columns'],
         );
         if ($data['type'] === TableSchema::CONSTRAINT_FOREIGN) {
             return $prefix . sprintf(
                 ' FOREIGN KEY (%s) REFERENCES %s (%s) ON UPDATE %s ON DELETE %s',
                 implode(', ', $columns),
-                $this->_driver->quoteIdentifier($data['references'][0]),
+                $this->driver->quoteIdentifier($data['references'][0]),
                 $this->convertConstraintColumns($data['references'][1]),
                 $this->foreignOnClause($data['update']),
                 $this->foreignOnClause($data['delete']),
@@ -902,7 +902,7 @@ class SqlserverSchemaDialect extends SchemaDialect
     {
         $content = array_merge($columns, $constraints);
         $content = implode(",\n", array_filter($content));
-        $tableName = $this->_driver->quoteIdentifier($schema->name());
+        $tableName = $this->driver->quoteIdentifier($schema->name());
         $out = [];
         $out[] = sprintf("CREATE TABLE %s (\n%s\n)", $tableName, $content);
         foreach ($indexes as $index) {
@@ -929,9 +929,9 @@ class SqlserverSchemaDialect extends SchemaDialect
      */
     protected function columnCommentSql(TableSchema $schema, string $name, string $comment): string
     {
-        $tableName = $this->_driver->quoteIdentifier($schema->name());
-        $columnName = $this->_driver->quoteIdentifier($name);
-        $comment = $this->_driver->schemaValue($comment);
+        $tableName = $this->driver->quoteIdentifier($schema->name());
+        $columnName = $this->driver->quoteIdentifier($name);
+        $comment = $this->driver->schemaValue($comment);
 
         return sprintf(
             "EXEC sp_addextendedproperty N'MS_Description', %s, N'SCHEMA', N'dbo', N'TABLE', %s, N'COLUMN', %s;",
@@ -946,7 +946,7 @@ class SqlserverSchemaDialect extends SchemaDialect
      */
     public function truncateTableSql(TableSchema $schema): array
     {
-        $name = $this->_driver->quoteIdentifier($schema->name());
+        $name = $this->driver->quoteIdentifier($schema->name());
         $queries = [
             sprintf('DELETE FROM %s', $name),
         ];

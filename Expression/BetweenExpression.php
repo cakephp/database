@@ -34,21 +34,21 @@ class BetweenExpression implements ExpressionInterface, FieldInterface
      *
      * @var mixed
      */
-    protected mixed $_from;
+    protected mixed $from;
 
     /**
      * The second value in the expression
      *
      * @var mixed
      */
-    protected mixed $_to;
+    protected mixed $to;
 
     /**
      * The data type for the from and to arguments
      *
      * @var mixed
      */
-    protected mixed $_type;
+    protected mixed $type;
 
     /**
      * Constructor
@@ -65,10 +65,10 @@ class BetweenExpression implements ExpressionInterface, FieldInterface
             $to = $this->castToExpression($to, $type);
         }
 
-        $this->_field = $field;
-        $this->_from = $from;
-        $this->_to = $to;
-        $this->_type = $type;
+        $this->field = $field;
+        $this->from = $from;
+        $this->to = $to;
+        $this->type = $type;
     }
 
     /**
@@ -77,11 +77,11 @@ class BetweenExpression implements ExpressionInterface, FieldInterface
     public function sql(ValueBinder $binder): string
     {
         $parts = [
-            'from' => $this->_from,
-            'to' => $this->_to,
+            'from' => $this->from,
+            'to' => $this->to,
         ];
 
-        $field = $this->_field;
+        $field = $this->field;
         if ($field instanceof ExpressionInterface) {
             $field = $field->sql($binder);
         }
@@ -91,7 +91,7 @@ class BetweenExpression implements ExpressionInterface, FieldInterface
                 $parts[$name] = $part->sql($binder);
                 continue;
             }
-            $parts[$name] = $this->bindValue($part, $binder, $this->_type);
+            $parts[$name] = $this->bindValue($part, $binder, $this->type);
         }
         assert(is_string($field));
 
@@ -103,7 +103,7 @@ class BetweenExpression implements ExpressionInterface, FieldInterface
      */
     public function traverse(Closure $callback): static
     {
-        foreach ([$this->_field, $this->_from, $this->_to] as $part) {
+        foreach ([$this->field, $this->from, $this->to] as $part) {
             if ($part instanceof ExpressionInterface) {
                 $callback($part);
             }
@@ -135,7 +135,7 @@ class BetweenExpression implements ExpressionInterface, FieldInterface
      */
     public function __clone(): void
     {
-        foreach (['_field', '_from', '_to'] as $part) {
+        foreach (['field', 'from', 'to'] as $part) {
             if ($this->{$part} instanceof ExpressionInterface) {
                 $this->{$part} = clone $this->{$part};
             }

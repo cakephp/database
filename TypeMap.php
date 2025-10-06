@@ -29,7 +29,7 @@ class TypeMap
      *
      * @var array<int|string, string>
      */
-    protected array $_defaults = [];
+    protected array $defaults = [];
 
     /**
      * Array with the fields and the related types that override defaults this query might contain
@@ -39,7 +39,7 @@ class TypeMap
      *
      * @var array<int|string, string>
      */
-    protected array $_types = [];
+    protected array $types = [];
 
     /**
      * Creates an instance with the given defaults
@@ -75,7 +75,7 @@ class TypeMap
      */
     public function setDefaults(array $defaults): static
     {
-        $this->_defaults = $defaults;
+        $this->defaults = $defaults;
 
         return $this;
     }
@@ -87,7 +87,7 @@ class TypeMap
      */
     public function getDefaults(): array
     {
-        return $this->_defaults;
+        return $this->defaults;
     }
 
     /**
@@ -100,7 +100,7 @@ class TypeMap
      */
     public function addDefaults(array $types): void
     {
-        $this->_defaults += $types;
+        $this->defaults += $types;
     }
 
     /**
@@ -120,7 +120,7 @@ class TypeMap
      */
     public function setTypes(array $types): static
     {
-        $this->_types = $types;
+        $this->types = $types;
 
         return $this;
     }
@@ -132,7 +132,7 @@ class TypeMap
      */
     public function getTypes(): array
     {
-        return $this->_types;
+        return $this->types;
     }
 
     /**
@@ -145,7 +145,7 @@ class TypeMap
      */
     public function type(string|int $column): ?string
     {
-        return $this->_types[$column] ?? $this->_defaults[$column] ?? null;
+        return $this->types[$column] ?? $this->defaults[$column] ?? null;
     }
 
     /**
@@ -155,6 +155,6 @@ class TypeMap
      */
     public function toArray(): array
     {
-        return $this->_types + $this->_defaults;
+        return $this->types + $this->defaults;
     }
 }

@@ -24,7 +24,7 @@ class DateTimeTimezoneType extends DateTimeType
     /**
      * @inheritDoc
      */
-    protected string $_format = 'Y-m-d H:i:s.uP';
+    protected string $format = 'Y-m-d H:i:s.uP';
 
     /**
      * {@inheritDoc}
@@ -32,7 +32,7 @@ class DateTimeTimezoneType extends DateTimeType
      * @var array<string>
      */
 
-    protected array $_marshalFormats = [
+    protected array $marshalFormats = [
         'Y-m-d H:i',
         'Y-m-d H:i:s',
         'Y-m-d H:i:sP',

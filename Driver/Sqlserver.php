@@ -62,7 +62,7 @@ class Sqlserver extends Driver
      *
      * @var array<string, mixed>
      */
-    protected array $_baseConfig = [
+    protected array $baseConfig = [
         'host' => 'localhost\SQLEXPRESS',
         'username' => null,
         'password' => null,
@@ -90,14 +90,14 @@ class Sqlserver extends Driver
      *
      * @var string
      */
-    protected string $_startQuote = '[';
+    protected string $startQuote = '[';
 
     /**
      * String used to end a database identifier quoting to make it safe
      *
      * @var string
      */
-    protected string $_endQuote = ']';
+    protected string $endQuote = ']';
 
     /**
      * Establishes a connection to the database server.
@@ -115,7 +115,7 @@ class Sqlserver extends Driver
         if ($this->pdo !== null) {
             return;
         }
-        $config = $this->_config;
+        $config = $this->config;
 
         if (isset($config['persistent']) && $config['persistent']) {
             throw new InvalidArgumentException(
@@ -299,7 +299,7 @@ class Sqlserver extends Driver
      */
     public function schemaDialect(): SchemaDialect
     {
-        return $this->_schemaDialect ??= new SqlserverSchemaDialect($this);
+        return $this->schemaDialect ??= new SqlserverSchemaDialect($this);
     }
 
     /**

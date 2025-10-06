@@ -46,7 +46,7 @@ abstract class SchemaDialect
      *
      * @var \Cake\Database\Driver
      */
-    protected Driver $_driver;
+    protected Driver $driver;
 
     /**
      * Constructor
@@ -59,7 +59,7 @@ abstract class SchemaDialect
     public function __construct(Driver $driver)
     {
         $driver->connect();
-        $this->_driver = $driver;
+        $this->driver = $driver;
     }
 
     /**
@@ -117,11 +117,11 @@ abstract class SchemaDialect
     protected function convertConstraintColumns(array|string $references): string
     {
         if (is_string($references)) {
-            return $this->_driver->quoteIdentifier($references);
+            return $this->driver->quoteIdentifier($references);
         }
 
         return implode(', ', array_map(
-            $this->_driver->quoteIdentifier(...),
+            $this->driver->quoteIdentifier(...),
             $references,
         ));
     }
@@ -150,7 +150,7 @@ abstract class SchemaDialect
             return null;
         }
 
-        return $type->getColumnSql($schema, $column, $this->_driver);
+        return $type->getColumnSql($schema, $column, $this->driver);
     }
 
     /**
@@ -173,7 +173,7 @@ abstract class SchemaDialect
             return null;
         }
 
-        return $type->convertColumnDefinition($definition, $this->_driver);
+        return $type->convertColumnDefinition($definition, $this->driver);
     }
 
     /**
@@ -186,7 +186,7 @@ abstract class SchemaDialect
     {
         $sql = sprintf(
             'DROP TABLE %s',
-            $this->_driver->quoteIdentifier($schema->name()),
+            $this->driver->quoteIdentifier($schema->name()),
         );
 
         return [$sql];
@@ -382,9 +382,9 @@ abstract class SchemaDialect
      */
     public function listTablesWithoutViews(): array
     {
-        [$sql, $params] = $this->listTablesWithoutViewsSql($this->_driver->config());
+        [$sql, $params] = $this->listTablesWithoutViewsSql($this->driver->config());
         $result = [];
-        $statement = $this->_driver->execute($sql, $params);
+        $statement = $this->driver->execute($sql, $params);
         while ($row = $statement->fetch()) {
             $result[] = $row[0];
         }
@@ -400,7 +400,7 @@ abstract class SchemaDialect
      */
     public function listTables(?string $schema = null): array
     {
-        $config = $this->_driver->config();
+        $config = $this->driver->config();
         if ($schema !== null) {
             $config['schema'] = $schema;
             // Set database for MySQL
@@ -408,7 +408,7 @@ abstract class SchemaDialect
         }
         [$sql, $params] = $this->listTablesSql($config);
         $result = [];
-        $statement = $this->_driver->execute($sql, $params);
+        $statement = $this->driver->execute($sql, $params);
         while ($row = $statement->fetch()) {
             $result[] = $row[0];
         }
@@ -431,7 +431,7 @@ abstract class SchemaDialect
         if (str_contains($name, '.')) {
             $tableName = explode('.', $name)[1];
         }
-        $table = $this->_driver->newTableSchema($tableName);
+        $table = $this->driver->newTableSchema($tableName);
         foreach ($this->describeColumns($name) as $column) {
             $table->addColumn($column['name'], $column);
         }
@@ -479,15 +479,15 @@ abstract class SchemaDialect
             '5.2.0',
             'SchemaDialect subclasses need to implement `describeColumns` before 6.0.0',
         );
-        $config = $this->_driver->config();
+        $config = $this->driver->config();
         if (str_contains($tableName, '.')) {
             [$config['schema'], $tableName] = explode('.', $tableName);
         }
         /** @var \Cake\Database\Schema\TableSchema $table */
-        $table = $this->_driver->newTableSchema($tableName);
+        $table = $this->driver->newTableSchema($tableName);
 
         [$sql, $params] = $this->describeColumnSql($tableName, $config);
-        $statement = $this->_driver->execute($sql, $params);
+        $statement = $this->driver->execute($sql, $params);
         foreach ($statement->fetchAll('assoc') as $row) {
             $this->convertColumnDescription($table, $row);
         }
@@ -522,19 +522,19 @@ abstract class SchemaDialect
             '5.2.0',
             'SchemaDialect subclasses need to implement `describeForeignKeys` before 6.0.0',
         );
-        $config = $this->_driver->config();
+        $config = $this->driver->config();
         if (str_contains($tableName, '.')) {
             [$config['schema'], $tableName] = explode('.', $tableName);
         }
         /** @var \Cake\Database\Schema\TableSchema $table */
-        $table = $this->_driver->newTableSchema($tableName);
+        $table = $this->driver->newTableSchema($tableName);
         // Add the columns because TableSchema needs them.
         foreach ($this->describeColumns($tableName) as $column) {
             $table->addColumn($column['name'], $column);
         }
 
         [$sql, $params] = $this->describeForeignKeySql($tableName, $config);
-        $statement = $this->_driver->execute($sql, $params);
+        $statement = $this->driver->execute($sql, $params);
         foreach ($statement->fetchAll('assoc') as $row) {
             $this->convertForeignKeyDescription($table, $row);
         }
@@ -567,19 +567,19 @@ abstract class SchemaDialect
             '5.2.0',
             'SchemaDialect subclasses need to implement `describeIndexes` before 6.0.0',
         );
-        $config = $this->_driver->config();
+        $config = $this->driver->config();
         if (str_contains($tableName, '.')) {
             [$config['schema'], $tableName] = explode('.', $tableName);
         }
         /** @var \Cake\Database\Schema\TableSchema $table */
-        $table = $this->_driver->newTableSchema($tableName);
+        $table = $this->driver->newTableSchema($tableName);
         // Add the columns because TableSchema needs them.
         foreach ($this->describeColumns($tableName) as $column) {
             $table->addColumn($column['name'], $column);
         }
 
         [$sql, $params] = $this->describeIndexSql($tableName, $config);
-        $statement = $this->_driver->execute($sql, $params);
+        $statement = $this->driver->execute($sql, $params);
         foreach ($statement->fetchAll('assoc') as $row) {
             $this->convertIndexDescription($table, $row);
         }
@@ -607,16 +607,16 @@ abstract class SchemaDialect
             '5.2.0',
             'SchemaDialect subclasses need to implement `describeOptions` before 6.0.0',
         );
-        $config = $this->_driver->config();
+        $config = $this->driver->config();
         if (str_contains($tableName, '.')) {
             [$config['schema'], $tableName] = explode('.', $tableName);
         }
         /** @var \Cake\Database\Schema\TableSchema $table */
-        $table = $this->_driver->newTableSchema($tableName);
+        $table = $this->driver->newTableSchema($tableName);
 
         [$sql, $params] = $this->describeOptionsSql($tableName, $config);
         if ($sql) {
-            $statement = $this->_driver->execute($sql, $params);
+            $statement = $this->driver->execute($sql, $params);
             foreach ($statement->fetchAll('assoc') as $row) {
                 $this->convertOptionsDescription($table, $row);
             }

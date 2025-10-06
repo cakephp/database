@@ -45,7 +45,7 @@ class Sqlite extends Driver
      *
      * @var array<string, mixed>
      */
-    protected array $_baseConfig = [
+    protected array $baseConfig = [
         'persistent' => false,
         'username' => null,
         'password' => null,
@@ -63,28 +63,28 @@ class Sqlite extends Driver
      *
      * @var bool|null
      */
-    protected ?bool $_supportsWindowFunctions = null;
+    protected ?bool $supportsWindowFunctions = null;
 
     /**
      * String used to start a database identifier quoting to make it safe
      *
      * @var string
      */
-    protected string $_startQuote = '"';
+    protected string $startQuote = '"';
 
     /**
      * String used to end a database identifier quoting to make it safe
      *
      * @var string
      */
-    protected string $_endQuote = '"';
+    protected string $endQuote = '"';
 
     /**
      * Mapping of date parts.
      *
      * @var array<string, string>
      */
-    protected array $_dateParts = [
+    protected array $dateParts = [
         'day' => 'd',
         'hour' => 'H',
         'month' => 'm',
@@ -112,7 +112,7 @@ class Sqlite extends Driver
         if ($this->pdo !== null) {
             return;
         }
-        $config = $this->_config;
+        $config = $this->config;
         $config['flags'] += [
             PDO::ATTR_PERSISTENT => $config['persistent'],
             PDO::ATTR_EMULATE_PREPARES => false,
@@ -216,7 +216,7 @@ class Sqlite extends Driver
      */
     public function schemaDialect(): SchemaDialect
     {
-        return $this->_schemaDialect ?? ($this->_schemaDialect = new SqliteSchemaDialect($this));
+        return $this->schemaDialect ?? ($this->schemaDialect = new SqliteSchemaDialect($this));
     }
 
     /**
@@ -273,8 +273,8 @@ class Sqlite extends Driver
                     ->iterateParts(function ($p, $key) {
                         if ($key === 0) {
                             $value = rtrim(strtolower($p), 's');
-                            if (isset($this->_dateParts[$value])) {
-                                $p = ['value' => '%' . $this->_dateParts[$value], 'type' => null];
+                            if (isset($this->dateParts[$value])) {
+                                $p = ['value' => '%' . $this->dateParts[$value], 'type' => null];
                             }
                         }
 

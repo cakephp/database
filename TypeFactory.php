@@ -31,7 +31,7 @@ class TypeFactory
      * @var array<string, string>
      * @phpstan-var array<string, class-string<\Cake\Database\TypeInterface>>
      */
-    protected static array $_types = [
+    protected static array $types = [
         'tinyinteger' => Type\IntegerType::class,
         'smallinteger' => Type\IntegerType::class,
         'integer' => Type\IntegerType::class,
@@ -65,7 +65,7 @@ class TypeFactory
      *
      * @var array<\Cake\Database\TypeInterface>
      */
-    protected static array $_builtTypes = [];
+    protected static array $builtTypes = [];
 
     /**
      * Returns a Type object capable of converting a type identified by name.
@@ -76,14 +76,14 @@ class TypeFactory
      */
     public static function build(string $name): TypeInterface
     {
-        if (isset(static::$_builtTypes[$name])) {
-            return static::$_builtTypes[$name];
+        if (isset(static::$builtTypes[$name])) {
+            return static::$builtTypes[$name];
         }
-        if (!isset(static::$_types[$name])) {
+        if (!isset(static::$types[$name])) {
             throw new InvalidArgumentException(sprintf('Unknown type `%s`', $name));
         }
 
-        return static::$_builtTypes[$name] = new static::$_types[$name]($name);
+        return static::$builtTypes[$name] = new static::$types[$name]($name);
     }
 
     /**
@@ -93,11 +93,11 @@ class TypeFactory
      */
     public static function buildAll(): array
     {
-        foreach (static::$_types as $name => $type) {
-            static::$_builtTypes[$name] ??= static::build($name);
+        foreach (static::$types as $name => $type) {
+            static::$builtTypes[$name] ??= static::build($name);
         }
 
-        return static::$_builtTypes;
+        return static::$builtTypes;
     }
 
     /**
@@ -109,7 +109,7 @@ class TypeFactory
      */
     public static function set(string $name, TypeInterface $instance): void
     {
-        static::$_builtTypes[$name] = $instance;
+        static::$builtTypes[$name] = $instance;
     }
 
     /**
@@ -122,8 +122,8 @@ class TypeFactory
      */
     public static function map(string $type, string $className): void
     {
-        static::$_types[$type] = $className;
-        unset(static::$_builtTypes[$type]);
+        static::$types[$type] = $className;
+        unset(static::$builtTypes[$type]);
     }
 
     /**
@@ -135,8 +135,8 @@ class TypeFactory
      */
     public static function setMap(array $map): void
     {
-        static::$_types = $map;
-        static::$_builtTypes = [];
+        static::$types = $map;
+        static::$builtTypes = [];
     }
 
     /**
@@ -151,7 +151,7 @@ class TypeFactory
     public static function getMap(?string $type = null): array|string|null
     {
         if ($type === null) {
-            return static::$_types;
+            return static::$types;
         }
 
         trigger_error(
@@ -159,7 +159,7 @@ class TypeFactory
             E_USER_DEPRECATED,
         );
 
-        return static::$_types[$type] ?? null;
+        return static::$types[$type] ?? null;
     }
 
     /**
@@ -171,7 +171,7 @@ class TypeFactory
      */
     public static function getMapped(string $type): ?string
     {
-        return static::$_types[$type] ?? null;
+        return static::$types[$type] ?? null;
     }
 
     /**
@@ -181,7 +181,7 @@ class TypeFactory
      */
     public static function clear(): void
     {
-        static::$_types = [];
-        static::$_builtTypes = [];
+        static::$types = [];
+        static::$builtTypes = [];
     }
 }

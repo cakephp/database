@@ -32,12 +32,12 @@ class DateType extends BaseType implements BatchCastingInterface
     /**
      * @var string
      */
-    protected string $_format = 'Y-m-d';
+    protected string $format = 'Y-m-d';
 
     /**
      * @var array<string>
      */
-    protected array $_marshalFormats = [
+    protected array $marshalFormats = [
         'Y-m-d',
     ];
 
@@ -46,7 +46,7 @@ class DateType extends BaseType implements BatchCastingInterface
      *
      * @var bool
      */
-    protected bool $_useLocaleMarshal = false;
+    protected bool $useLocaleMarshal = false;
 
     /**
      * The locale-aware format `marshal()` uses when `_useLocaleParser` is true.
@@ -55,14 +55,14 @@ class DateType extends BaseType implements BatchCastingInterface
      *
      * @var string|int|null
      */
-    protected string|int|null $_localeMarshalFormat = null;
+    protected string|int|null $localeMarshalFormat = null;
 
     /**
      * The classname to use when creating objects.
      *
      * @var class-string<\Cake\Chronos\ChronosDate>
      */
-    protected string $_className;
+    protected string $className;
 
     /**
      * @inheritDoc
@@ -71,7 +71,7 @@ class DateType extends BaseType implements BatchCastingInterface
     {
         parent::__construct($name);
 
-        $this->_className = class_exists(Date::class) ? Date::class : ChronosDate::class;
+        $this->className = class_exists(Date::class) ? Date::class : ChronosDate::class;
     }
 
     /**
@@ -87,13 +87,13 @@ class DateType extends BaseType implements BatchCastingInterface
             return $value;
         }
         if (is_int($value)) {
-            $class = $this->_className;
+            $class = $this->className;
             $value = new $class('@' . $value);
         }
 
         assert(is_object($value) && method_exists($value, 'format'));
 
-        return $value->format($this->_format);
+        return $value->format($this->format);
     }
 
     /**
@@ -109,7 +109,7 @@ class DateType extends BaseType implements BatchCastingInterface
             return null;
         }
 
-        $class = $this->_className;
+        $class = $this->className;
         if (is_int($value)) {
             $instance = new $class('@' . $value);
         } elseif (str_starts_with($value, '0000-00-00')) {
@@ -133,7 +133,7 @@ class DateType extends BaseType implements BatchCastingInterface
 
             $value = $values[$field];
 
-            $class = $this->_className;
+            $class = $this->className;
             if (is_int($value)) {
                 $instance = new $class('@' . $value);
             } elseif (str_starts_with($value, '0000-00-00')) {
@@ -157,22 +157,22 @@ class DateType extends BaseType implements BatchCastingInterface
      */
     public function marshal(mixed $value): ?ChronosDate
     {
-        if ($value instanceof $this->_className) {
+        if ($value instanceof $this->className) {
             return $value;
         }
 
         if ($value instanceof DateTimeInterface || $value instanceof ChronosDate) {
-            return new $this->_className($value->format($this->_format));
+            return new $this->className($value->format($this->format));
         }
 
-        $class = $this->_className;
+        $class = $this->className;
         try {
             if (is_int($value) || (is_string($value) && ctype_digit($value))) {
                 return new $class('@' . $value);
             }
 
             if (is_string($value)) {
-                if ($this->_useLocaleMarshal) {
+                if ($this->useLocaleMarshal) {
                     return $this->parseLocaleValue($value);
                 }
 
@@ -205,17 +205,17 @@ class DateType extends BaseType implements BatchCastingInterface
     public function useLocaleParser(bool $enable = true): static
     {
         if ($enable === false) {
-            $this->_useLocaleMarshal = $enable;
+            $this->useLocaleMarshal = $enable;
 
             return $this;
         }
-        if (is_a($this->_className, Date::class, true)) {
-            $this->_useLocaleMarshal = $enable;
+        if (is_a($this->className, Date::class, true)) {
+            $this->useLocaleMarshal = $enable;
 
             return $this;
         }
         throw new DatabaseException(
-            sprintf('Cannot use locale parsing with %s', $this->_className),
+            sprintf('Cannot use locale parsing with %s', $this->className),
         );
     }
 
@@ -230,7 +230,7 @@ class DateType extends BaseType implements BatchCastingInterface
      */
     public function setLocaleFormat(string|int $format): static
     {
-        $this->_localeMarshalFormat = $format;
+        $this->localeMarshalFormat = $format;
 
         return $this;
     }
@@ -242,7 +242,7 @@ class DateType extends BaseType implements BatchCastingInterface
      */
     public function getDateClassName(): string
     {
-        return $this->_className;
+        return $this->className;
     }
 
     /**
@@ -252,9 +252,9 @@ class DateType extends BaseType implements BatchCastingInterface
     protected function parseLocaleValue(string $value): ?Date
     {
         /** @var class-string<\Cake\I18n\Date> $class */
-        $class = $this->_className;
+        $class = $this->className;
 
-        return $class::parseDate($value, $this->_localeMarshalFormat);
+        return $class::parseDate($value, $this->localeMarshalFormat);
     }
 
     /**
@@ -266,8 +266,8 @@ class DateType extends BaseType implements BatchCastingInterface
      */
     protected function parseValue(string $value): ?ChronosDate
     {
-        $class = $this->_className;
-        foreach ($this->_marshalFormats as $format) {
+        $class = $this->className;
+        foreach ($this->marshalFormats as $format) {
             try {
                 return $class::createFromFormat($format, $value);
             } catch (InvalidArgumentException) {

@@ -41,7 +41,7 @@ class FloatType extends BaseType implements BatchCastingInterface
      *
      * @var bool
      */
-    protected bool $_useLocaleParser = false;
+    protected bool $useLocaleParser = false;
 
     /**
      * Convert integer data into the database format.
@@ -110,7 +110,7 @@ class FloatType extends BaseType implements BatchCastingInterface
         if ($value === null || $value === '') {
             return null;
         }
-        if (is_string($value) && $this->_useLocaleParser) {
+        if (is_string($value) && $this->useLocaleParser) {
             return $this->parseValue($value);
         }
         if (is_numeric($value)) {
@@ -133,7 +133,7 @@ class FloatType extends BaseType implements BatchCastingInterface
     public function useLocaleParser(bool $enable = true): static
     {
         if ($enable === false) {
-            $this->_useLocaleParser = $enable;
+            $this->useLocaleParser = $enable;
 
             return $this;
         }
@@ -141,7 +141,7 @@ class FloatType extends BaseType implements BatchCastingInterface
             static::$numberClass === Number::class ||
             is_subclass_of(static::$numberClass, Number::class)
         ) {
-            $this->_useLocaleParser = $enable;
+            $this->useLocaleParser = $enable;
 
             return $this;
         }
