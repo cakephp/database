@@ -186,7 +186,7 @@ class SqlserverSchemaDialect extends SchemaDialect
         }
         // SqlServer schema reflection returns double length for unicode
         // columns because internally it uses UTF16/UCS2
-        if ($col === 'nvarchar' || $col === 'nchar' || $col === 'ntext') {
+        if (in_array($col, ['nvarchar', 'nchar', 'ntext'], true)) {
             $length /= 2;
         }
         if (str_contains($col, 'varchar') && $length < 0) {
