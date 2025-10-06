@@ -40,7 +40,7 @@ class QueryExpression implements ExpressionInterface, Countable
      *
      * @var string
      */
-    protected string $_conjunction;
+    protected string $conjunction;
 
     /**
      * A list of strings or other expression objects that represent the "branches" of
@@ -48,7 +48,7 @@ class QueryExpression implements ExpressionInterface, Countable
      *
      * @var array
      */
-    protected array $_conditions = [];
+    protected array $conditions = [];
 
     /**
      * Constructor. A new expression object can be created without any params and
@@ -85,7 +85,7 @@ class QueryExpression implements ExpressionInterface, Countable
      */
     public function setConjunction(string $conjunction): static
     {
-        $this->_conjunction = strtoupper($conjunction);
+        $this->conjunction = strtoupper($conjunction);
 
         return $this;
     }
@@ -97,7 +97,7 @@ class QueryExpression implements ExpressionInterface, Countable
      */
     public function getConjunction(): string
     {
-        return $this->_conjunction;
+        return $this->conjunction;
     }
 
     /**
@@ -123,7 +123,7 @@ class QueryExpression implements ExpressionInterface, Countable
     public function add(ExpressionInterface|array|string $conditions, array $types = []): static
     {
         if (is_string($conditions) || $conditions instanceof ExpressionInterface) {
-            $this->_conditions[] = $conditions;
+            $this->conditions[] = $conditions;
 
             return $this;
         }
@@ -487,7 +487,7 @@ class QueryExpression implements ExpressionInterface, Countable
      */
     public function count(): int
     {
-        return count($this->_conditions);
+        return count($this->conditions);
     }
 
     /**
@@ -519,10 +519,10 @@ class QueryExpression implements ExpressionInterface, Countable
         if ($len === 0) {
             return '';
         }
-        $conjunction = $this->_conjunction;
+        $conjunction = $this->conjunction;
         $template = $len === 1 ? '%s' : '(%s)';
         $parts = [];
-        foreach ($this->_conditions as $part) {
+        foreach ($this->conditions as $part) {
             if ($part instanceof Query) {
                 $part = '(' . $part->sql($binder) . ')';
             } elseif ($part instanceof ExpressionInterface) {
@@ -541,7 +541,7 @@ class QueryExpression implements ExpressionInterface, Countable
      */
     public function traverse(Closure $callback): static
     {
-        foreach ($this->_conditions as $c) {
+        foreach ($this->conditions as $c) {
             if ($c instanceof ExpressionInterface) {
                 $callback($c);
                 $c->traverse($callback);
@@ -569,14 +569,14 @@ class QueryExpression implements ExpressionInterface, Countable
     public function iterateParts(Closure $callback): static
     {
         $parts = [];
-        foreach ($this->_conditions as $k => $c) {
+        foreach ($this->conditions as $k => $c) {
             $key = &$k;
             $part = $callback($c, $key);
             if ($part !== null) {
                 $parts[$key] = $part;
             }
         }
-        $this->_conditions = $parts;
+        $this->conditions = $parts;
 
         return $this;
     }
@@ -589,7 +589,7 @@ class QueryExpression implements ExpressionInterface, Countable
      */
     public function hasNestedExpression(): bool
     {
-        return array_any($this->_conditions, fn($c) => $c instanceof ExpressionInterface);
+        return array_any($this->conditions, fn($c) => $c instanceof ExpressionInterface);
     }
 
     /**
@@ -634,27 +634,27 @@ class QueryExpression implements ExpressionInterface, Countable
             }
 
             if ($numericKey && $c instanceof ExpressionInterface) {
-                $this->_conditions[] = $c;
+                $this->conditions[] = $c;
                 continue;
             }
 
             if ($numericKey && is_string($c)) {
-                $this->_conditions[] = $c;
+                $this->conditions[] = $c;
                 continue;
             }
 
             if ($numericKey && $isArray || $isOperator) {
-                $this->_conditions[] = new static($c, $typeMap, $numericKey ? 'AND' : $k);
+                $this->conditions[] = new static($c, $typeMap, $numericKey ? 'AND' : $k);
                 continue;
             }
 
             if ($isNot) {
-                $this->_conditions[] = new UnaryExpression('NOT', new static($c, $typeMap));
+                $this->conditions[] = new UnaryExpression('NOT', new static($c, $typeMap));
                 continue;
             }
 
             if (!$numericKey) {
-                $this->_conditions[] = $this->parseCondition($k, $c);
+                $this->conditions[] = $this->parseCondition($k, $c);
             }
         }
     }
@@ -737,7 +737,7 @@ class QueryExpression implements ExpressionInterface, Countable
             $operator = '!=';
         }
 
-        if ($value === null && $this->_conjunction !== ',') {
+        if ($value === null && $this->conjunction !== ',') {
             throw new InvalidArgumentException(
                 sprintf(
                     'Expression `%s` has invalid `null` value.'
@@ -773,9 +773,9 @@ class QueryExpression implements ExpressionInterface, Countable
      */
     public function __clone(): void
     {
-        foreach ($this->_conditions as $i => $condition) {
+        foreach ($this->conditions as $i => $condition) {
             if ($condition instanceof ExpressionInterface) {
-                $this->_conditions[$i] = clone $condition;
+                $this->conditions[$i] = clone $condition;
             }
         }
     }

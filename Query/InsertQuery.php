@@ -31,14 +31,14 @@ class InsertQuery extends Query
      *
      * @var string
      */
-    protected string $_type = self::TYPE_INSERT;
+    protected string $type = self::TYPE_INSERT;
 
     /**
      * List of SQL parts that will be used to build this query.
      *
      * @var array<string, mixed>
      */
-    protected array $_parts = [
+    protected array $parts = [
         'comment' => null,
         'with' => [],
         'insert' => [],
@@ -65,12 +65,12 @@ class InsertQuery extends Query
             throw new InvalidArgumentException('At least 1 column is required to perform an insert.');
         }
         $this->dirty();
-        $this->_parts['insert'][1] = $columns;
-        if (!$this->_parts['values']) {
-            $this->_parts['values'] = new ValuesExpression($columns, $this->getTypeMap()->setTypes($types));
+        $this->parts['insert'][1] = $columns;
+        if (!$this->parts['values']) {
+            $this->parts['values'] = new ValuesExpression($columns, $this->getTypeMap()->setTypes($types));
         } else {
             /** @var \Cake\Database\Expression\ValuesExpression $valuesExpr */
-            $valuesExpr = $this->_parts['values'];
+            $valuesExpr = $this->parts['values'];
             $valuesExpr->setColumns($columns);
         }
 
@@ -86,7 +86,7 @@ class InsertQuery extends Query
     public function into(string $table): static
     {
         $this->dirty();
-        $this->_parts['insert'][0] = $table;
+        $this->parts['insert'][0] = $table;
 
         return $this;
     }
@@ -105,7 +105,7 @@ class InsertQuery extends Query
      */
     public function values(ValuesExpression|Query|array $data): static
     {
-        if (empty($this->_parts['insert'])) {
+        if (empty($this->parts['insert'])) {
             throw new DatabaseException(
                 'You cannot add values before defining columns to use.',
             );
@@ -113,13 +113,13 @@ class InsertQuery extends Query
 
         $this->dirty();
         if ($data instanceof ValuesExpression) {
-            $this->_parts['values'] = $data;
+            $this->parts['values'] = $data;
 
             return $this;
         }
 
         /** @var \Cake\Database\Expression\ValuesExpression $valuesExpr */
-        $valuesExpr = $this->_parts['values'];
+        $valuesExpr = $this->parts['values'];
         $valuesExpr->add($data);
 
         return $this;

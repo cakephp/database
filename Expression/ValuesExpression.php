@@ -41,21 +41,21 @@ class ValuesExpression implements ExpressionInterface
      *
      * @var array
      */
-    protected array $_values = [];
+    protected array $values = [];
 
     /**
      * List of columns to ensure are part of the insert.
      *
      * @var array
      */
-    protected array $_columns = [];
+    protected array $columns = [];
 
     /**
      * The Query object to use as a values expression
      *
      * @var \Cake\Database\Query|null
      */
-    protected ?Query $_query = null;
+    protected ?Query $query = null;
 
     /**
      * Whether values have been casted to expressions
@@ -63,7 +63,7 @@ class ValuesExpression implements ExpressionInterface
      *
      * @var bool
      */
-    protected bool $_castedExpressions = false;
+    protected bool $castedExpressions = false;
 
     /**
      * Constructor
@@ -73,7 +73,7 @@ class ValuesExpression implements ExpressionInterface
      */
     public function __construct(array $columns, TypeMap $typeMap)
     {
-        $this->_columns = $columns;
+        $this->columns = $columns;
         $this->setTypeMap($typeMap);
     }
 
@@ -89,11 +89,11 @@ class ValuesExpression implements ExpressionInterface
     {
         if (
             (
-                count($this->_values) &&
+                count($this->values) &&
                 $values instanceof Query
             ) ||
             (
-                $this->_query &&
+                $this->query &&
                 is_array($values)
             )
         ) {
@@ -106,8 +106,8 @@ class ValuesExpression implements ExpressionInterface
 
             return;
         }
-        $this->_values[] = $values;
-        $this->_castedExpressions = false;
+        $this->values[] = $values;
+        $this->castedExpressions = false;
     }
 
     /**
@@ -118,8 +118,8 @@ class ValuesExpression implements ExpressionInterface
      */
     public function setColumns(array $columns): static
     {
-        $this->_columns = $columns;
-        $this->_castedExpressions = false;
+        $this->columns = $columns;
+        $this->castedExpressions = false;
 
         return $this;
     }
@@ -131,7 +131,7 @@ class ValuesExpression implements ExpressionInterface
      */
     public function getColumns(): array
     {
-        return $this->_columns;
+        return $this->columns;
     }
 
     /**
@@ -145,7 +145,7 @@ class ValuesExpression implements ExpressionInterface
     protected function columnNames(): array
     {
         $columns = [];
-        foreach ($this->_columns as $col) {
+        foreach ($this->columns as $col) {
             if (is_string($col)) {
                 $col = trim($col, '`[]"');
             }
@@ -163,8 +163,8 @@ class ValuesExpression implements ExpressionInterface
      */
     public function setValues(array $values): static
     {
-        $this->_values = $values;
-        $this->_castedExpressions = false;
+        $this->values = $values;
+        $this->castedExpressions = false;
 
         return $this;
     }
@@ -176,11 +176,11 @@ class ValuesExpression implements ExpressionInterface
      */
     public function getValues(): array
     {
-        if (!$this->_castedExpressions) {
+        if (!$this->castedExpressions) {
             $this->processExpressions();
         }
 
-        return $this->_values;
+        return $this->values;
     }
 
     /**
@@ -192,7 +192,7 @@ class ValuesExpression implements ExpressionInterface
      */
     public function setQuery(Query $query): static
     {
-        $this->_query = $query;
+        $this->query = $query;
 
         return $this;
     }
@@ -205,7 +205,7 @@ class ValuesExpression implements ExpressionInterface
      */
     public function getQuery(): ?Query
     {
-        return $this->_query;
+        return $this->query;
     }
 
     /**
@@ -213,11 +213,11 @@ class ValuesExpression implements ExpressionInterface
      */
     public function sql(ValueBinder $binder): string
     {
-        if (!$this->_values && $this->_query === null) {
+        if (!$this->values && $this->query === null) {
             return '';
         }
 
-        if (!$this->_castedExpressions) {
+        if (!$this->castedExpressions) {
             $this->processExpressions();
         }
 
@@ -231,7 +231,7 @@ class ValuesExpression implements ExpressionInterface
             $types[$col] = $typeMap->type($col);
         }
 
-        foreach ($this->_values as $row) {
+        foreach ($this->values as $row) {
             $row += $defaults;
             $rowPlaceholders = [];
 
@@ -264,15 +264,15 @@ class ValuesExpression implements ExpressionInterface
      */
     public function traverse(Closure $callback): static
     {
-        if ($this->_query) {
+        if ($this->query) {
             return $this;
         }
 
-        if (!$this->_castedExpressions) {
+        if (!$this->castedExpressions) {
             $this->processExpressions();
         }
 
-        foreach ($this->_values as $v) {
+        foreach ($this->values as $v) {
             if ($v instanceof ExpressionInterface) {
                 $v->traverse($callback);
             }
@@ -314,12 +314,12 @@ class ValuesExpression implements ExpressionInterface
             return;
         }
 
-        foreach ($this->_values as $row => $values) {
+        foreach ($this->values as $row => $values) {
             foreach ($types as $col => $type) {
                 /** @var \Cake\Database\Type\ExpressionTypeInterface $type */
-                $this->_values[$row][$col] = $type->toExpression($values[$col]);
+                $this->values[$row][$col] = $type->toExpression($values[$col]);
             }
         }
-        $this->_castedExpressions = true;
+        $this->castedExpressions = true;
     }
 }

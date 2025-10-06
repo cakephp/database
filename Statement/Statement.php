@@ -39,7 +39,7 @@ class Statement implements StatementInterface
     /**
      * @var \Cake\Database\Driver
      */
-    protected Driver $_driver;
+    protected Driver $driver;
 
     /**
      * Cached bound parameters used for logging
@@ -58,7 +58,7 @@ class Statement implements StatementInterface
         Driver $driver,
         protected array $resultDecorators = [],
     ) {
-        $this->_driver = $driver;
+        $this->driver = $driver;
     }
 
     /**
@@ -110,8 +110,8 @@ class Statement implements StatementInterface
             $type = TypeFactory::build($type);
         }
         if ($type instanceof TypeInterface) {
-            $value = $type->toDatabase($value, $this->_driver);
-            $type = $type->toStatement($value, $this->_driver);
+            $value = $type->toDatabase($value, $this->driver);
+            $type = $type->toStatement($value, $this->driver);
         }
 
         return [$value, $type];
@@ -270,7 +270,7 @@ class Statement implements StatementInterface
             }
         }
 
-        return $this->_driver->lastInsertId($table);
+        return $this->driver->lastInsertId($table);
     }
 
     /**

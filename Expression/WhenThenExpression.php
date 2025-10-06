@@ -50,7 +50,7 @@ class WhenThenExpression implements ExpressionInterface
      *
      * @var \Cake\Database\TypeMap
      */
-    protected TypeMap $_typeMap;
+    protected TypeMap $typeMap;
 
     /**
      * Then `WHEN` value.
@@ -96,7 +96,7 @@ class WhenThenExpression implements ExpressionInterface
      */
     public function __construct(?TypeMap $typeMap = null)
     {
-        $this->_typeMap = $typeMap ?? new TypeMap();
+        $this->typeMap = $typeMap ?? new TypeMap();
     }
 
     /**
@@ -137,7 +137,7 @@ class WhenThenExpression implements ExpressionInterface
             }
 
             // avoid dirtying the type map for possible consecutive `when()` calls
-            $typeMap = clone $this->_typeMap;
+            $typeMap = clone $this->typeMap;
             if (
                 is_array($type) &&
                 $type !== []

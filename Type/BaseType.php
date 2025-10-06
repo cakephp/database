@@ -30,7 +30,7 @@ abstract class BaseType implements TypeInterface
      *
      * @var string|null
      */
-    protected ?string $_name = null;
+    protected ?string $name = null;
 
     /**
      * Constructor
@@ -39,7 +39,7 @@ abstract class BaseType implements TypeInterface
      */
     public function __construct(?string $name = null)
     {
-        $this->_name = $name;
+        $this->name = $name;
     }
 
     /**
@@ -47,7 +47,7 @@ abstract class BaseType implements TypeInterface
      */
     public function getName(): ?string
     {
-        return $this->_name;
+        return $this->name;
     }
 
     /**
@@ -55,7 +55,7 @@ abstract class BaseType implements TypeInterface
      */
     public function getBaseType(): ?string
     {
-        return $this->_name;
+        return $this->name;
     }
 
     /**

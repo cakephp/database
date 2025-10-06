@@ -34,7 +34,7 @@ class QueryCompiler
      *
      * @var array<string, string>
      */
-    protected array $_templates = [
+    protected array $templates = [
         'delete' => 'DELETE',
         'where' => ' WHERE %s',
         'group' => ' GROUP BY %s ',
@@ -51,7 +51,7 @@ class QueryCompiler
      *
      * @var array<string>
      */
-    protected array $_selectParts = [
+    protected array $selectParts = [
         'comment', 'with', 'select', 'from', 'join', 'where', 'group', 'having', 'window', 'order',
         'limit', 'offset', 'union', 'epilog', 'intersect',
     ];
@@ -61,14 +61,14 @@ class QueryCompiler
      *
      * @var array<string>
      */
-    protected array $_updateParts = ['comment', 'with', 'update', 'set', 'where', 'epilog'];
+    protected array $updateParts = ['comment', 'with', 'update', 'set', 'where', 'epilog'];
 
     /**
      * The list of query clauses to traverse for generating a DELETE statement
      *
      * @var array<string>
      */
-    protected array $_deleteParts = ['comment', 'with', 'delete', 'optimizerHint', 'modifier', 'from', 'where',
+    protected array $deleteParts = ['comment', 'with', 'delete', 'optimizerHint', 'modifier', 'from', 'where',
         'epilog'];
 
     /**
@@ -76,14 +76,14 @@ class QueryCompiler
      *
      * @var array<string>
      */
-    protected array $_insertParts = ['comment', 'with', 'insert', 'values', 'epilog'];
+    protected array $insertParts = ['comment', 'with', 'insert', 'values', 'epilog'];
 
     /**
      * Indicate whether aliases in SELECT clause need to be always quoted.
      *
      * @var bool
      */
-    protected bool $_quotedSelectAliases = false;
+    protected bool $quotedSelectAliases = false;
 
     /**
      * Returns the SQL representation of the provided query after generating
@@ -99,7 +99,7 @@ class QueryCompiler
         $type = $query->type();
         $query->traverseParts(
             $this->sqlCompiler($sql, $query, $binder),
-            $this->{"_{$type}Parts"},
+            $this->{"{$type}Parts"},
         );
 
         // Propagate bound parameters from sub-queries if the
@@ -141,9 +141,9 @@ class QueryCompiler
             if ($part instanceof ExpressionInterface) {
                 $part = [$part->sql($binder)];
             }
-            if (isset($this->_templates[$partName])) {
+            if (isset($this->templates[$partName])) {
                 $part = $this->stringifyExpressions((array)$part, $binder);
-                $sql .= sprintf($this->_templates[$partName], implode(', ', $part));
+                $sql .= sprintf($this->templates[$partName], implode(', ', $part));
 
                 return;
             }
@@ -200,7 +200,7 @@ class QueryCompiler
         $hint = $this->buildOptimizerHintPart($query->clause('optimizerHint'), $query, $binder);
         $modifiers = $this->buildModifierPart($query->clause('modifier'), $query, $binder);
 
-        $quoteIdentifiers = $driver->isAutoQuotingEnabled() || $this->_quotedSelectAliases;
+        $quoteIdentifiers = $driver->isAutoQuotingEnabled() || $this->quotedSelectAliases;
         $normalized = [];
         $parts = $this->stringifyExpressions($parts, $binder);
         foreach ($parts as $k => $p) {

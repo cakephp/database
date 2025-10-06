@@ -28,7 +28,7 @@ trait FieldTrait
      *
      * @var \Cake\Database\ExpressionInterface|array|string
      */
-    protected ExpressionInterface|array|string $_field;
+    protected ExpressionInterface|array|string $field;
 
     /**
      * Sets the field name
@@ -38,7 +38,7 @@ trait FieldTrait
      */
     public function setField(ExpressionInterface|array|string $field): void
     {
-        $this->_field = $field;
+        $this->field = $field;
     }
 
     /**
@@ -48,6 +48,6 @@ trait FieldTrait
      */
     public function getField(): ExpressionInterface|array|string
     {
-        return $this->_field;
+        return $this->field;
     }
 }

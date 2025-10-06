@@ -43,14 +43,14 @@ class SelectQuery extends Query implements IteratorAggregate
      *
      * @var string
      */
-    protected string $_type = self::TYPE_SELECT;
+    protected string $type = self::TYPE_SELECT;
 
     /**
      * List of SQL parts that will be used to build this query.
      *
      * @var array<string, mixed>
      */
-    protected array $_parts = [
+    protected array $parts = [
         'comment' => null,
         'with' => [],
         'select' => [],
@@ -78,14 +78,14 @@ class SelectQuery extends Query implements IteratorAggregate
      *
      * @var array<\Closure>
      */
-    protected array $_resultDecorators = [];
+    protected array $resultDecorators = [];
 
     /**
      * Result set from executed SELECT query.
      *
      * @var iterable|null
      */
-    protected ?iterable $_results = null;
+    protected ?iterable $results = null;
 
     /**
      * Boolean for tracking whether buffered results
@@ -100,7 +100,7 @@ class SelectQuery extends Query implements IteratorAggregate
      *
      * @var \Cake\Database\TypeMap|null
      */
-    protected ?TypeMap $_selectTypeMap = null;
+    protected ?TypeMap $selectTypeMap = null;
 
     /**
      * Tracking flag to disable casting
@@ -119,11 +119,11 @@ class SelectQuery extends Query implements IteratorAggregate
      */
     public function all(): iterable
     {
-        if ($this->_results === null || $this->_dirty) {
-            $this->_results = $this->execute()->fetchAll(StatementInterface::FETCH_TYPE_ASSOC);
+        if ($this->results === null || $this->dirty) {
+            $this->results = $this->execute()->fetchAll(StatementInterface::FETCH_TYPE_ASSOC);
         }
 
-        return $this->_results;
+        return $this->results;
     }
 
     /**
@@ -174,9 +174,9 @@ class SelectQuery extends Query implements IteratorAggregate
         }
 
         if ($overwrite) {
-            $this->_parts['select'] = $fields;
+            $this->parts['select'] = $fields;
         } else {
-            $this->_parts['select'] = array_merge($this->_parts['select'], $fields);
+            $this->parts['select'] = array_merge($this->parts['select'], $fields);
         }
 
         $this->dirty();
@@ -222,13 +222,13 @@ class SelectQuery extends Query implements IteratorAggregate
 
         if (is_array($on)) {
             $merge = [];
-            if (is_array($this->_parts['distinct'])) {
-                $merge = $this->_parts['distinct'];
+            if (is_array($this->parts['distinct'])) {
+                $merge = $this->parts['distinct'];
             }
             $on = $overwrite ? array_values($on) : array_merge($merge, array_values($on));
         }
 
-        $this->_parts['distinct'] = $on;
+        $this->parts['distinct'] = $on;
         $this->dirty();
 
         return $this;
@@ -327,7 +327,7 @@ class SelectQuery extends Query implements IteratorAggregate
         }
 
         $joins = [];
-        $i = count($this->_parts['join']);
+        $i = count($this->parts['join']);
         foreach ($tables as $alias => $t) {
             if (!is_array($t)) {
                 $t = ['table' => $t, 'conditions' => $this->expr()];
@@ -345,9 +345,9 @@ class SelectQuery extends Query implements IteratorAggregate
         }
 
         if ($overwrite) {
-            $this->_parts['join'] = $joins;
+            $this->parts['join'] = $joins;
         } else {
-            $this->_parts['join'] = array_merge($this->_parts['join'], $joins);
+            $this->parts['join'] = array_merge($this->parts['join'], $joins);
         }
 
         $this->dirty();
@@ -366,7 +366,7 @@ class SelectQuery extends Query implements IteratorAggregate
      */
     public function removeJoin(string $name): static
     {
-        unset($this->_parts['join'][$name]);
+        unset($this->parts['join'][$name]);
         $this->dirty();
 
         return $this;
@@ -528,14 +528,14 @@ class SelectQuery extends Query implements IteratorAggregate
     public function groupBy(ExpressionInterface|array|string $fields, bool $overwrite = false): static
     {
         if ($overwrite) {
-            $this->_parts['group'] = [];
+            $this->parts['group'] = [];
         }
 
         if (!is_array($fields)) {
             $fields = [$fields];
         }
 
-        $this->_parts['group'] = array_merge($this->_parts['group'], array_values($fields));
+        $this->parts['group'] = array_merge($this->parts['group'], array_values($fields));
         $this->dirty();
 
         return $this;
@@ -562,7 +562,7 @@ class SelectQuery extends Query implements IteratorAggregate
         bool $overwrite = false,
     ): static {
         if ($overwrite) {
-            $this->_parts['having'] = $this->expr();
+            $this->parts['having'] = $this->expr();
         }
         $this->conjugate('having', $conditions, 'AND', $types);
 
@@ -603,7 +603,7 @@ class SelectQuery extends Query implements IteratorAggregate
     public function window(string $name, WindowExpression|Closure $window, bool $overwrite = false): static
     {
         if ($overwrite) {
-            $this->_parts['window'] = [];
+            $this->parts['window'] = [];
         }
 
         if ($window instanceof Closure) {
@@ -613,7 +613,7 @@ class SelectQuery extends Query implements IteratorAggregate
             }
         }
 
-        $this->_parts['window'][] = ['name' => new IdentifierExpression($name), 'window' => $window];
+        $this->parts['window'][] = ['name' => new IdentifierExpression($name), 'window' => $window];
         $this->dirty();
 
         return $this;
@@ -683,9 +683,9 @@ class SelectQuery extends Query implements IteratorAggregate
     public function union(Query|string $query, bool $overwrite = false): static
     {
         if ($overwrite) {
-            $this->_parts['union'] = [];
+            $this->parts['union'] = [];
         }
-        $this->_parts['union'][] = [
+        $this->parts['union'][] = [
             'all' => false,
             'query' => $query,
         ];
@@ -718,9 +718,9 @@ class SelectQuery extends Query implements IteratorAggregate
     public function unionAll(Query|string $query, bool $overwrite = false): static
     {
         if ($overwrite) {
-            $this->_parts['union'] = [];
+            $this->parts['union'] = [];
         }
-        $this->_parts['union'][] = [
+        $this->parts['union'][] = [
             'all' => true,
             'query' => $query,
         ];
@@ -756,9 +756,9 @@ class SelectQuery extends Query implements IteratorAggregate
     public function intersect(Query|string $query, bool $overwrite = false): static
     {
         if ($overwrite) {
-            $this->_parts['intersect'] = [];
+            $this->parts['intersect'] = [];
         }
-        $this->_parts['intersect'][] = [
+        $this->parts['intersect'][] = [
             'all' => false,
             'query' => $query,
         ];
@@ -791,9 +791,9 @@ class SelectQuery extends Query implements IteratorAggregate
     public function intersectAll(Query|string $query, bool $overwrite = false): static
     {
         if ($overwrite) {
-            $this->_parts['intersect'] = [];
+            $this->parts['intersect'] = [];
         }
-        $this->_parts['intersect'][] = [
+        $this->parts['intersect'][] = [
             'all' => true,
             'query' => $query,
         ];
@@ -857,11 +857,11 @@ class SelectQuery extends Query implements IteratorAggregate
     {
         $this->dirty();
         if ($overwrite) {
-            $this->_resultDecorators = [];
+            $this->resultDecorators = [];
         }
 
         if ($callback !== null) {
-            $this->_resultDecorators[] = $callback;
+            $this->resultDecorators[] = $callback;
         }
 
         return $this;
@@ -874,7 +874,7 @@ class SelectQuery extends Query implements IteratorAggregate
      */
     public function getResultDecorators(): array
     {
-        return $this->_resultDecorators;
+        return $this->resultDecorators;
     }
 
     /**
@@ -939,7 +939,7 @@ class SelectQuery extends Query implements IteratorAggregate
      */
     public function setSelectTypeMap(TypeMap|array $typeMap): static
     {
-        $this->_selectTypeMap = is_array($typeMap) ? new TypeMap($typeMap) : $typeMap;
+        $this->selectTypeMap = is_array($typeMap) ? new TypeMap($typeMap) : $typeMap;
         $this->dirty();
 
         return $this;
@@ -953,7 +953,7 @@ class SelectQuery extends Query implements IteratorAggregate
      */
     public function getSelectTypeMap(): TypeMap
     {
-        return $this->_selectTypeMap ??= new TypeMap();
+        return $this->selectTypeMap ??= new TypeMap();
     }
 
     /**
@@ -1013,9 +1013,9 @@ class SelectQuery extends Query implements IteratorAggregate
     {
         parent::__clone();
 
-        $this->_results = null;
-        if ($this->_selectTypeMap !== null) {
-            $this->_selectTypeMap = clone $this->_selectTypeMap;
+        $this->results = null;
+        if ($this->selectTypeMap !== null) {
+            $this->selectTypeMap = clone $this->selectTypeMap;
         }
     }
 
@@ -1028,7 +1028,7 @@ class SelectQuery extends Query implements IteratorAggregate
     public function __debugInfo(): array
     {
         $return = parent::__debugInfo();
-        $return['decorators'] = count($this->_resultDecorators);
+        $return['decorators'] = count($this->resultDecorators);
 
         return $return;
     }

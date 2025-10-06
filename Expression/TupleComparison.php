@@ -51,7 +51,7 @@ class TupleComparison extends ComparisonExpression
     ) {
         $this->types = $types;
         $this->setField($fields);
-        $this->_operator = $conjunction;
+        $this->operator = $conjunction;
         $this->setValue($values);
     }
 
@@ -85,7 +85,7 @@ class TupleComparison extends ComparisonExpression
             );
         }
 
-        $this->_value = $value;
+        $this->value = $value;
     }
 
     /**
@@ -109,7 +109,7 @@ class TupleComparison extends ComparisonExpression
 
         $field = implode(', ', $fields);
 
-        return sprintf($template, $field, $this->_operator, $values);
+        return sprintf($template, $field, $this->operator, $values);
     }
 
     /**
@@ -226,6 +226,6 @@ class TupleComparison extends ComparisonExpression
      */
     public function isMulti(): bool
     {
-        return in_array(strtolower($this->_operator), ['in', 'not in']);
+        return in_array(strtolower($this->operator), ['in', 'not in']);
     }
 }

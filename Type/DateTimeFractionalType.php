@@ -24,5 +24,5 @@ class DateTimeFractionalType extends DateTimeType
     /**
      * @inheritDoc
      */
-    protected string $_format = 'Y-m-d H:i:s.u';
+    protected string $format = 'Y-m-d H:i:s.u';
 }

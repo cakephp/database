@@ -30,14 +30,14 @@ class JsonType extends BaseType implements BatchCastingInterface
     /**
      * @var int
      */
-    protected int $_encodingOptions = 0;
+    protected int $encodingOptions = 0;
 
     /**
      * Flags for json_decode()
      *
      * @var int
      */
-    protected int $_decodingOptions = JSON_OBJECT_AS_ARRAY;
+    protected int $decodingOptions = JSON_OBJECT_AS_ARRAY;
 
     /**
      * Convert a value data into a JSON string
@@ -58,7 +58,7 @@ class JsonType extends BaseType implements BatchCastingInterface
             return null;
         }
 
-        return json_encode($value, JSON_THROW_ON_ERROR | $this->_encodingOptions);
+        return json_encode($value, JSON_THROW_ON_ERROR | $this->encodingOptions);
     }
 
     /**
@@ -74,7 +74,7 @@ class JsonType extends BaseType implements BatchCastingInterface
             return null;
         }
 
-        return json_decode($value, flags: $this->_decodingOptions);
+        return json_decode($value, flags: $this->decodingOptions);
     }
 
     /**
@@ -87,7 +87,7 @@ class JsonType extends BaseType implements BatchCastingInterface
                 continue;
             }
 
-            $values[$field] = json_decode($values[$field], flags: $this->_decodingOptions);
+            $values[$field] = json_decode($values[$field], flags: $this->decodingOptions);
         }
 
         return $values;
@@ -121,7 +121,7 @@ class JsonType extends BaseType implements BatchCastingInterface
      */
     public function setEncodingOptions(int $options): static
     {
-        $this->_encodingOptions = $options;
+        $this->encodingOptions = $options;
 
         return $this;
     }
@@ -136,7 +136,7 @@ class JsonType extends BaseType implements BatchCastingInterface
      */
     public function setDecodingOptions(int $options): static
     {
-        $this->_decodingOptions = $options;
+        $this->decodingOptions = $options;
 
         return $this;
     }

@@ -35,7 +35,7 @@ class SchemaCache
      *
      * @var \Cake\Database\Schema\CachedCollection
      */
-    protected CachedCollection $_schema;
+    protected CachedCollection $schema;
 
     /**
      * Constructor
@@ -44,7 +44,7 @@ class SchemaCache
      */
     public function __construct(Connection $connection)
     {
-        $this->_schema = $this->getSchema($connection);
+        $this->schema = $this->getSchema($connection);
     }
 
     /**
@@ -58,11 +58,11 @@ class SchemaCache
         if ($name) {
             $tables = [$name];
         } else {
-            $tables = $this->_schema->listTables();
+            $tables = $this->schema->listTables();
         }
 
         foreach ($tables as $table) {
-            $this->_schema->describe($table, ['forceRefresh' => true]);
+            $this->schema->describe($table, ['forceRefresh' => true]);
         }
 
         return $tables;
@@ -79,13 +79,13 @@ class SchemaCache
         if ($name) {
             $tables = [$name];
         } else {
-            $tables = $this->_schema->listTables();
+            $tables = $this->schema->listTables();
         }
 
-        $cacher = $this->_schema->getCacher();
+        $cacher = $this->schema->getCacher();
 
         foreach ($tables as $table) {
-            $key = $this->_schema->cacheKey($table);
+            $key = $this->schema->cacheKey($table);
             $cacher->delete($key);
         }
 

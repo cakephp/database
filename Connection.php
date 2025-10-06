@@ -49,7 +49,7 @@ class Connection implements ConnectionInterface
      *
      * @var array<string, mixed>
      */
-    protected array $_config;
+    protected array $config;
 
     /**
      * @var \Cake\Database\Driver
@@ -66,14 +66,14 @@ class Connection implements ConnectionInterface
      *
      * @var int
      */
-    protected int $_transactionLevel = 0;
+    protected int $transactionLevel = 0;
 
     /**
      * Whether a transaction is active in this connection.
      *
      * @var bool
      */
-    protected bool $_transactionStarted = false;
+    protected bool $transactionStarted = false;
 
     /**
      * Whether this connection can and should use savepoints for nested
@@ -81,7 +81,7 @@ class Connection implements ConnectionInterface
      *
      * @var bool
      */
-    protected bool $_useSavePoints = false;
+    protected bool $useSavePoints = false;
 
     /**
      * Cacher object instance.
@@ -95,7 +95,7 @@ class Connection implements ConnectionInterface
      *
      * @var \Cake\Database\Schema\CollectionInterface|null
      */
-    protected ?SchemaCollectionInterface $_schemaCollection = null;
+    protected ?SchemaCollectionInterface $schemaCollection = null;
 
     /**
      * NestedTransactionRollbackException object instance, will be stored if
@@ -123,7 +123,7 @@ class Connection implements ConnectionInterface
      */
     public function __construct(array $config)
     {
-        $this->_config = $config;
+        $this->config = $config;
         [self::ROLE_READ => $this->readDriver, self::ROLE_WRITE => $this->writeDriver] = $this->createDrivers($config);
     }
 
@@ -187,7 +187,7 @@ class Connection implements ConnectionInterface
      */
     public function __destruct()
     {
-        if ($this->_transactionStarted && class_exists(Log::class)) {
+        if ($this->transactionStarted && class_exists(Log::class)) {
             $message = 'The connection is going to be closed but there is an active transaction.';
 
             $requestUrl = env('REQUEST_URI');
@@ -209,7 +209,7 @@ class Connection implements ConnectionInterface
      */
     public function config(): array
     {
-        return $this->_config;
+        return $this->config;
     }
 
     /**
@@ -217,7 +217,7 @@ class Connection implements ConnectionInterface
      */
     public function configName(): string
     {
-        return $this->_config['name'] ?? '';
+        return $this->config['name'] ?? '';
     }
 
     /**
@@ -378,7 +378,7 @@ class Connection implements ConnectionInterface
      */
     public function setSchemaCollection(SchemaCollectionInterface $collection): static
     {
-        $this->_schemaCollection = $collection;
+        $this->schemaCollection = $collection;
 
         return $this;
     }
@@ -390,19 +390,19 @@ class Connection implements ConnectionInterface
      */
     public function getSchemaCollection(): SchemaCollectionInterface
     {
-        if ($this->_schemaCollection !== null) {
-            return $this->_schemaCollection;
+        if ($this->schemaCollection !== null) {
+            return $this->schemaCollection;
         }
 
-        if (!empty($this->_config['cacheMetadata'])) {
-            return $this->_schemaCollection = new CachedCollection(
+        if (!empty($this->config['cacheMetadata'])) {
+            return $this->schemaCollection = new CachedCollection(
                 new SchemaCollection($this),
-                empty($this->_config['cacheKeyPrefix']) ? $this->configName() : $this->_config['cacheKeyPrefix'],
+                empty($this->config['cacheKeyPrefix']) ? $this->configName() : $this->config['cacheKeyPrefix'],
                 $this->getCacher(),
             );
         }
 
-        return $this->_schemaCollection = new SchemaCollection($this);
+        return $this->schemaCollection = new SchemaCollection($this);
     }
 
     /**
@@ -452,21 +452,21 @@ class Connection implements ConnectionInterface
      */
     public function begin(): void
     {
-        if (!$this->_transactionStarted) {
+        if (!$this->transactionStarted) {
             $this->getDisconnectRetry()->run(function (): void {
                 $this->getWriteDriver()->beginTransaction();
             });
 
-            $this->_transactionLevel = 0;
-            $this->_transactionStarted = true;
+            $this->transactionLevel = 0;
+            $this->transactionStarted = true;
             $this->nestedTransactionRollbackException = null;
 
             return;
         }
 
-        $this->_transactionLevel++;
+        $this->transactionLevel++;
         if ($this->isSavePointsEnabled()) {
-            $this->createSavePoint((string)$this->_transactionLevel);
+            $this->createSavePoint((string)$this->transactionLevel);
         }
     }
 
@@ -477,11 +477,11 @@ class Connection implements ConnectionInterface
      */
     public function commit(): bool
     {
-        if (!$this->_transactionStarted) {
+        if (!$this->transactionStarted) {
             return false;
         }
 
-        if ($this->_transactionLevel === 0) {
+        if ($this->transactionLevel === 0) {
             if ($this->wasNestedTransactionRolledback()) {
                 $e = $this->nestedTransactionRollbackException;
                 assert($e !== null);
@@ -489,16 +489,16 @@ class Connection implements ConnectionInterface
                 throw $e;
             }
 
-            $this->_transactionStarted = false;
+            $this->transactionStarted = false;
             $this->nestedTransactionRollbackException = null;
 
             return $this->getWriteDriver()->commitTransaction();
         }
         if ($this->isSavePointsEnabled()) {
-            $this->releaseSavePoint((string)$this->_transactionLevel);
+            $this->releaseSavePoint((string)$this->transactionLevel);
         }
 
-        $this->_transactionLevel--;
+        $this->transactionLevel--;
 
         return true;
     }
@@ -512,22 +512,22 @@ class Connection implements ConnectionInterface
      */
     public function rollback(?bool $toBeginning = null): bool
     {
-        if (!$this->_transactionStarted) {
+        if (!$this->transactionStarted) {
             return false;
         }
 
         $useSavePoint = $this->isSavePointsEnabled();
         $toBeginning ??= !$useSavePoint;
-        if ($this->_transactionLevel === 0 || $toBeginning) {
-            $this->_transactionLevel = 0;
-            $this->_transactionStarted = false;
+        if ($this->transactionLevel === 0 || $toBeginning) {
+            $this->transactionLevel = 0;
+            $this->transactionStarted = false;
             $this->nestedTransactionRollbackException = null;
             $this->getWriteDriver()->rollbackTransaction();
 
             return true;
         }
 
-        $savePoint = $this->_transactionLevel--;
+        $savePoint = $this->transactionLevel--;
         if ($useSavePoint) {
             $this->rollbackSavepoint($savePoint);
         } else {
@@ -549,9 +549,9 @@ class Connection implements ConnectionInterface
     public function enableSavePoints(bool $enable = true): static
     {
         if ($enable === false) {
-            $this->_useSavePoints = false;
+            $this->useSavePoints = false;
         } else {
-            $this->_useSavePoints = $this->getWriteDriver()->supports(DriverFeatureEnum::SAVEPOINT);
+            $this->useSavePoints = $this->getWriteDriver()->supports(DriverFeatureEnum::SAVEPOINT);
         }
 
         return $this;
@@ -564,7 +564,7 @@ class Connection implements ConnectionInterface
      */
     public function disableSavePoints(): static
     {
-        $this->_useSavePoints = false;
+        $this->useSavePoints = false;
 
         return $this;
     }
@@ -576,7 +576,7 @@ class Connection implements ConnectionInterface
      */
     public function isSavePointsEnabled(): bool
     {
-        return $this->_useSavePoints;
+        return $this->useSavePoints;
     }
 
     /**
@@ -738,7 +738,7 @@ class Connection implements ConnectionInterface
      */
     public function inTransaction(): bool
     {
-        return $this->_transactionStarted;
+        return $this->transactionStarted;
     }
 
     /**
@@ -752,8 +752,8 @@ class Connection implements ConnectionInterface
      */
     public function cacheMetadata(string|bool $cache): void
     {
-        $this->_schemaCollection = null;
-        $this->_config['cacheMetadata'] = $cache;
+        $this->schemaCollection = null;
+        $this->config['cacheMetadata'] = $cache;
         if (is_string($cache)) {
             $this->cacher = null;
         }
@@ -778,7 +778,7 @@ class Connection implements ConnectionInterface
             return $this->cacher;
         }
 
-        $configName = $this->_config['cacheMetadata'] ?? '_cake_model_';
+        $configName = $this->config['cacheMetadata'] ?? '_cake_model_';
         if (!is_string($configName)) {
             $configName = '_cake_model_';
         }
@@ -808,8 +808,8 @@ class Connection implements ConnectionInterface
             'database' => '*****',
             'port' => '*****',
         ];
-        $replace = array_intersect_key($secrets, $this->_config);
-        $config = $replace + $this->_config;
+        $replace = array_intersect_key($secrets, $this->config);
+        $config = $replace + $this->config;
 
         if (isset($config['read'])) {
             $config['read'] = array_intersect_key($secrets, $config['read']) + $config['read'];
@@ -822,9 +822,9 @@ class Connection implements ConnectionInterface
             'config' => $config,
             'readDriver' => $this->readDriver,
             'writeDriver' => $this->writeDriver,
-            'transactionLevel' => $this->_transactionLevel,
-            'transactionStarted' => $this->_transactionStarted,
-            'useSavePoints' => $this->_useSavePoints,
+            'transactionLevel' => $this->transactionLevel,
+            'transactionStarted' => $this->transactionStarted,
+            'useSavePoints' => $this->useSavePoints,
         ];
     }
 }

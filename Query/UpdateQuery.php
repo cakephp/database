@@ -32,14 +32,14 @@ class UpdateQuery extends Query
      *
      * @var string
      */
-    protected string $_type = self::TYPE_UPDATE;
+    protected string $type = self::TYPE_UPDATE;
 
     /**
      * List of SQL parts that will be used to build this query.
      *
      * @var array<string, mixed>
      */
-    protected array $_parts = [
+    protected array $parts = [
         'comment' => null,
         'with' => [],
         'update' => [],
@@ -64,7 +64,7 @@ class UpdateQuery extends Query
     public function update(ExpressionInterface|string $table): static
     {
         $this->dirty();
-        $this->_parts['update'][0] = $table;
+        $this->parts['update'][0] = $table;
 
         return $this;
     }
@@ -108,14 +108,14 @@ class UpdateQuery extends Query
         mixed $value = null,
         array|string $types = [],
     ): static {
-        if (empty($this->_parts['set'])) {
-            $this->_parts['set'] = $this->expr()->setConjunction(',');
+        if (empty($this->parts['set'])) {
+            $this->parts['set'] = $this->expr()->setConjunction(',');
         }
 
         if ($key instanceof Closure) {
             $exp = $this->expr()->setConjunction(',');
             /** @var \Cake\Database\Expression\QueryExpression $setExpr */
-            $setExpr = $this->_parts['set'];
+            $setExpr = $this->parts['set'];
             $setExpr->add($key($exp));
 
             return $this;
@@ -124,7 +124,7 @@ class UpdateQuery extends Query
         if (is_array($key) && !isset($key[0])) {
             $typeMap = $this->getTypeMap()->setTypes($value ?? []);
             /** @var \Cake\Database\Expression\QueryExpression $setExpr */
-            $setExpr = $this->_parts['set'];
+            $setExpr = $this->parts['set'];
             foreach ($key as $k => $v) {
                 $setExpr->add(new ComparisonExpression($k, $v, $typeMap->type($k)));
             }
@@ -135,7 +135,7 @@ class UpdateQuery extends Query
         if (is_array($key) || $key instanceof ExpressionInterface) {
             $types = (array)$value;
             /** @var \Cake\Database\Expression\QueryExpression $setExpr */
-            $setExpr = $this->_parts['set'];
+            $setExpr = $this->parts['set'];
             $setExpr->add($key, $types);
 
             return $this;
@@ -145,7 +145,7 @@ class UpdateQuery extends Query
             $types = null;
         }
         /** @var \Cake\Database\Expression\QueryExpression $setExpr */
-        $setExpr = $this->_parts['set'];
+        $setExpr = $this->parts['set'];
         $setExpr->eq($key, $value, $types);
 
         return $this;

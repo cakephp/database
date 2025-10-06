@@ -33,7 +33,7 @@ class OrderClauseExpression implements ExpressionInterface, FieldInterface
      *
      * @var string
      */
-    protected string $_direction;
+    protected string $direction;
 
     /**
      * Constructor
@@ -43,8 +43,8 @@ class OrderClauseExpression implements ExpressionInterface, FieldInterface
      */
     public function __construct(ExpressionInterface|string $field, string $direction)
     {
-        $this->_field = $field;
-        $this->_direction = strtolower($direction) === 'asc' ? 'ASC' : 'DESC';
+        $this->field = $field;
+        $this->direction = strtolower($direction) === 'asc' ? 'ASC' : 'DESC';
     }
 
     /**
@@ -52,7 +52,7 @@ class OrderClauseExpression implements ExpressionInterface, FieldInterface
      */
     public function sql(ValueBinder $binder): string
     {
-        $field = $this->_field;
+        $field = $this->field;
         if ($field instanceof Query) {
             $field = sprintf('(%s)', $field->sql($binder));
         } elseif ($field instanceof ExpressionInterface) {
@@ -60,7 +60,7 @@ class OrderClauseExpression implements ExpressionInterface, FieldInterface
         }
         assert(is_string($field));
 
-        return sprintf('%s %s', $field, $this->_direction);
+        return sprintf('%s %s', $field, $this->direction);
     }
 
     /**
@@ -68,9 +68,9 @@ class OrderClauseExpression implements ExpressionInterface, FieldInterface
      */
     public function traverse(Closure $callback): static
     {
-        if ($this->_field instanceof ExpressionInterface) {
-            $callback($this->_field);
-            $this->_field->traverse($callback);
+        if ($this->field instanceof ExpressionInterface) {
+            $callback($this->field);
+            $this->field->traverse($callback);
         }
 
         return $this;
@@ -83,8 +83,8 @@ class OrderClauseExpression implements ExpressionInterface, FieldInterface
      */
     public function __clone(): void
     {
-        if ($this->_field instanceof ExpressionInterface) {
-            $this->_field = clone $this->_field;
+        if ($this->field instanceof ExpressionInterface) {
+            $this->field = clone $this->field;
         }
     }
 }

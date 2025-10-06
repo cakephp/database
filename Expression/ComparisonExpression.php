@@ -37,28 +37,28 @@ class ComparisonExpression implements ExpressionInterface, FieldInterface
      *
      * @var mixed
      */
-    protected mixed $_value;
+    protected mixed $value;
 
     /**
      * The type to be used for casting the value to a database representation
      *
      * @var string|null
      */
-    protected ?string $_type = null;
+    protected ?string $type = null;
 
     /**
      * The operator used for comparing field and value
      *
      * @var string
      */
-    protected string $_operator = '=';
+    protected string $operator = '=';
 
     /**
      * Whether the value in this expression is a traversable
      *
      * @var bool
      */
-    protected bool $_isMultiple = false;
+    protected bool $isMultiple = false;
 
     /**
      * A cached list of ExpressionInterface objects that were
@@ -66,7 +66,7 @@ class ComparisonExpression implements ExpressionInterface, FieldInterface
      *
      * @var array<\Cake\Database\ExpressionInterface>
      */
-    protected array $_valueExpressions = [];
+    protected array $valueExpressions = [];
 
     /**
      * Constructor
@@ -82,10 +82,10 @@ class ComparisonExpression implements ExpressionInterface, FieldInterface
         ?string $type = null,
         string $operator = '=',
     ) {
-        $this->_type = $type;
+        $this->type = $type;
         $this->setField($field);
         $this->setValue($value);
-        $this->_operator = $operator;
+        $this->operator = $operator;
     }
 
     /**
@@ -96,15 +96,15 @@ class ComparisonExpression implements ExpressionInterface, FieldInterface
      */
     public function setValue(mixed $value): void
     {
-        $value = $this->castToExpression($value, $this->_type);
+        $value = $this->castToExpression($value, $this->type);
 
-        $isMultiple = $this->_type && str_contains($this->_type, '[]');
+        $isMultiple = $this->type && str_contains($this->type, '[]');
         if ($isMultiple) {
-            [$value, $this->_valueExpressions] = $this->collectExpressions($value);
+            [$value, $this->valueExpressions] = $this->collectExpressions($value);
         }
 
-        $this->_isMultiple = $isMultiple;
-        $this->_value = $value;
+        $this->isMultiple = $isMultiple;
+        $this->value = $value;
     }
 
     /**
@@ -114,7 +114,7 @@ class ComparisonExpression implements ExpressionInterface, FieldInterface
      */
     public function getValue(): mixed
     {
-        return $this->_value;
+        return $this->value;
     }
 
     /**
@@ -125,7 +125,7 @@ class ComparisonExpression implements ExpressionInterface, FieldInterface
      */
     public function setOperator(string $operator): void
     {
-        $this->_operator = $operator;
+        $this->operator = $operator;
     }
 
     /**
@@ -135,7 +135,7 @@ class ComparisonExpression implements ExpressionInterface, FieldInterface
      */
     public function getOperator(): string
     {
-        return $this->_operator;
+        return $this->operator;
     }
 
     /**
@@ -143,24 +143,24 @@ class ComparisonExpression implements ExpressionInterface, FieldInterface
      */
     public function sql(ValueBinder $binder): string
     {
-        $field = $this->_field;
+        $field = $this->field;
 
         if ($field instanceof ExpressionInterface) {
             $field = $field->sql($binder);
         }
 
-        if ($this->_value instanceof IdentifierExpression) {
+        if ($this->value instanceof IdentifierExpression) {
             $template = '%s %s %s';
-            $value = $this->_value->sql($binder);
-        } elseif ($this->_value instanceof ExpressionInterface) {
+            $value = $this->value->sql($binder);
+        } elseif ($this->value instanceof ExpressionInterface) {
             $template = '%s %s (%s)';
-            $value = $this->_value->sql($binder);
+            $value = $this->value->sql($binder);
         } else {
             [$template, $value] = $this->stringExpression($binder);
         }
         assert(is_string($field));
 
-        return sprintf($template, $field, $this->_operator, $value);
+        return sprintf($template, $field, $this->operator, $value);
     }
 
     /**
@@ -168,17 +168,17 @@ class ComparisonExpression implements ExpressionInterface, FieldInterface
      */
     public function traverse(Closure $callback): static
     {
-        if ($this->_field instanceof ExpressionInterface) {
-            $callback($this->_field);
-            $this->_field->traverse($callback);
+        if ($this->field instanceof ExpressionInterface) {
+            $callback($this->field);
+            $this->field->traverse($callback);
         }
 
-        if ($this->_value instanceof ExpressionInterface) {
-            $callback($this->_value);
-            $this->_value->traverse($callback);
+        if ($this->value instanceof ExpressionInterface) {
+            $callback($this->value);
+            $this->value->traverse($callback);
         }
 
-        foreach ($this->_valueExpressions as $v) {
+        foreach ($this->valueExpressions as $v) {
             $callback($v);
             $v->traverse($callback);
         }
@@ -195,7 +195,7 @@ class ComparisonExpression implements ExpressionInterface, FieldInterface
      */
     public function __clone(): void
     {
-        foreach (['_value', '_field'] as $prop) {
+        foreach (['value', 'field'] as $prop) {
             if ($this->{$prop} instanceof ExpressionInterface) {
                 $this->{$prop} = clone $this->{$prop};
             }
@@ -213,22 +213,22 @@ class ComparisonExpression implements ExpressionInterface, FieldInterface
     {
         $template = '%s ';
 
-        if ($this->_field instanceof ExpressionInterface && !$this->_field instanceof IdentifierExpression) {
+        if ($this->field instanceof ExpressionInterface && !$this->field instanceof IdentifierExpression) {
             $template = '(%s) ';
         }
 
-        if ($this->_isMultiple) {
+        if ($this->isMultiple) {
             $template .= '%s (%s)';
-            $type = $this->_type;
+            $type = $this->type;
             if ($type !== null) {
                 $type = str_replace('[]', '', $type);
             }
-            $value = $this->flattenValue($this->_value, $binder, $type);
+            $value = $this->flattenValue($this->value, $binder, $type);
 
             // To avoid SQL errors when comparing a field to a list of empty values,
             // better just throw an exception here
             if ($value === '') {
-                $field = $this->_field instanceof ExpressionInterface ? $this->_field->sql($binder) : $this->_field;
+                $field = $this->field instanceof ExpressionInterface ? $this->field->sql($binder) : $this->field;
                 /** @var string $field */
                 throw new DatabaseException(
                     "Impossible to generate condition with empty list of values for field ({$field})",
@@ -236,7 +236,7 @@ class ComparisonExpression implements ExpressionInterface, FieldInterface
             }
         } else {
             $template .= '%s %s';
-            $value = $this->bindValue($this->_value, $binder, $this->_type);
+            $value = $this->bindValue($this->value, $binder, $this->type);
         }
 
         return [$template, $value];
@@ -271,7 +271,7 @@ class ComparisonExpression implements ExpressionInterface, FieldInterface
     {
         $parts = [];
         if (is_array($value)) {
-            foreach ($this->_valueExpressions as $k => $v) {
+            foreach ($this->valueExpressions as $k => $v) {
                 $parts[$k] = $v->sql($binder);
                 unset($value[$k]);
             }

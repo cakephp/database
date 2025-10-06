@@ -26,7 +26,7 @@ trait TypedResultTrait
      *
      * @var string
      */
-    protected string $_returnType = 'string';
+    protected string $returnType = 'string';
 
     /**
      * Gets the type of the value this object will generate.
@@ -35,7 +35,7 @@ trait TypedResultTrait
      */
     public function getReturnType(): string
     {
-        return $this->_returnType;
+        return $this->returnType;
     }
 
     /**
@@ -46,7 +46,7 @@ trait TypedResultTrait
      */
     public function setReturnType(string $type): static
     {
-        $this->_returnType = $type;
+        $this->returnType = $type;
 
         return $this;
     }

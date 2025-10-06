@@ -28,14 +28,14 @@ class DeleteQuery extends Query
      *
      * @var string
      */
-    protected string $_type = self::TYPE_DELETE;
+    protected string $type = self::TYPE_DELETE;
 
     /**
      * List of SQL parts that will be used to build this query.
      *
      * @var array<string, mixed>
      */
-    protected array $_parts = [
+    protected array $parts = [
         'comment' => null,
         'with' => [],
         'delete' => true,
