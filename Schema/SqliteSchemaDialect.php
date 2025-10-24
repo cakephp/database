@@ -211,7 +211,7 @@ class SqliteSchemaDialect extends SchemaDialect
         $field = $this->convertColumn($row['type']);
         $field += [
             'null' => !$row['notnull'],
-            'default' => $this->defaultValue($row['dflt_value']),
+            'default' => $this->defaultValue($row['dflt_value'], $row['type']),
         ];
         $primary = $schema->getConstraint('primary');
 
@@ -276,7 +276,7 @@ class SqliteSchemaDialect extends SchemaDialect
             $field += [
                 'name' => $name,
                 'null' => !$row['notnull'],
-                'default' => $this->defaultValue($row['dflt_value']),
+                'default' => $this->defaultValue($row['dflt_value'], $row['type']),
                 'comment' => null,
                 'length' => null,
             ];
@@ -302,12 +302,21 @@ class SqliteSchemaDialect extends SchemaDialect
      * We need to remove those.
      *
      * @param string|int|null $default The default value.
+     * @param string|null $type The column type.
      * @return string|int|null
      */
-    protected function defaultValue(string|int|null $default): string|int|null
+    protected function defaultValue(string|int|null $default, ?string $type = null): string|int|null
     {
         if ($default === 'NULL' || $default === null) {
             return null;
+        }
+
+        if ($type !== null && strtolower($type) === TableSchemaInterface::TYPE_BOOLEAN) {
+            if ($default === '0' || $default === '1') {
+                return (int)$default;
+            }
+
+            return (int)filter_var($default, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
         }
 
         // Remove quotes
