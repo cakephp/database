@@ -454,7 +454,6 @@ class DateTimeType extends BaseType implements BatchCastingInterface
                 if ($dateTime !== false) {
                     return $dateTime;
                 }
-            /** @phpstan-ignore-next-line */
             } catch (InvalidArgumentException) {
                 // Chronos wraps DateTimeImmutable::createFromFormat and throws
                 // exception if parse fails.
