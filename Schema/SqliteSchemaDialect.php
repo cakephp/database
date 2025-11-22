@@ -268,9 +268,8 @@ class SqliteSchemaDialect extends SchemaDialect
      */
     public function describeColumns(string $tableName): array
     {
-        $config = $this->_driver->config();
         if (str_contains($tableName, '.')) {
-            [$config['schema'], $tableName] = explode('.', $tableName);
+            [, $tableName] = explode('.', $tableName);
         }
         $sql = $this->describeColumnQuery($tableName);
         $columns = [];
@@ -529,9 +528,8 @@ class SqliteSchemaDialect extends SchemaDialect
      */
     public function describeIndexes(string $tableName): array
     {
-        $config = $this->_driver->config();
         if (str_contains($tableName, '.')) {
-            [$config['schema'], $tableName] = explode('.', $tableName);
+            [, $tableName] = explode('.', $tableName);
         }
         $sql = $this->describeIndexQuery($tableName);
         $statement = $this->_driver->execute($sql);
@@ -653,9 +651,8 @@ class SqliteSchemaDialect extends SchemaDialect
      */
     public function describeForeignKeys(string $tableName): array
     {
-        $config = $this->_driver->config();
         if (str_contains($tableName, '.')) {
-            [$config['schema'], $tableName] = explode('.', $tableName);
+            [, $tableName] = explode('.', $tableName);
         }
 
         $keys = [];
