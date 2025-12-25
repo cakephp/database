@@ -87,7 +87,7 @@ class EnumType extends BaseType
      * @param mixed $value The value to convert.
      * @param \Cake\Database\Driver $driver The driver instance to convert with.
      * @return string|int|null
-     * @throws \InvalidArgumentException When the given value is not a valid value for the associaed enum
+     * @throws \InvalidArgumentException When the given value is not a valid value for the associated enum
      */
     public function toDatabase(mixed $value, Driver $driver): string|int|null
     {
