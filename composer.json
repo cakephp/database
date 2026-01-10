@@ -25,14 +25,14 @@
     },
     "require": {
         "php": ">=8.2",
-        "cakephp/core": "5.3.*@dev",
+        "cakephp/core": "^5.3.0",
         "cakephp/chronos": "^3.3",
-        "cakephp/datasource": "5.3.*@dev",
+        "cakephp/datasource": "^5.3.0",
         "psr/log": "^3.0"
     },
     "require-dev": {
-        "cakephp/i18n": "5.3.*@dev",
-        "cakephp/log": "5.3.*@dev"
+        "cakephp/i18n": "^5.3.0",
+        "cakephp/log": "^5.3.0"
     },
     "autoload": {
         "psr-4": {
