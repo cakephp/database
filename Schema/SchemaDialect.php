@@ -36,7 +36,7 @@ use function Cake\Core\deprecationWarning;
  * of each result will be documented in this class. Subclasses
  * are free to include *additional* data that is not documented.
  *
- * @method array<mixed> listTablesWithoutViewsSql(array $config) Generate the SQL to list the tables, excluding all views.
+ * @method array<mixed> listTablesWithoutViewsSql(array<string, mixed> $config) Generate the SQL to list the tables, excluding all views.
  */
 abstract class SchemaDialect
 {
