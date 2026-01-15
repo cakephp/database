@@ -144,12 +144,11 @@ class MysqlSchemaDialect extends SchemaDialect
                 'comment' => $row['Comment'],
                 'length' => null,
             ];
-            if (isset($row['Extra']) && $row['Extra'] === 'auto_increment') {
+            $extra = $row['Extra'] ?? '';
+            if ($extra === 'auto_increment') {
                 $field['autoIncrement'] = true;
             }
-            if ($row['Extra'] === 'on update CURRENT_TIMESTAMP') {
-                $field['onUpdate'] = 'CURRENT_TIMESTAMP';
-            } elseif ($row['Extra'] === 'on update current_timestamp()') {
+            if ($extra === 'on update CURRENT_TIMESTAMP' || $extra === 'on update current_timestamp()') {
                 $field['onUpdate'] = 'CURRENT_TIMESTAMP';
             }
 
@@ -165,8 +164,9 @@ class MysqlSchemaDialect extends SchemaDialect
     }
 
     /**
-     * Describes geoemetry-specific column information.
+     * Describes geometry-specific column information.
      *
+     * @param string $table The table name.
      * @return array<string, array{name: string, srid: int}> The column information.
      */
     private function describeGeometryColumns(string $table): array
