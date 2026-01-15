@@ -903,7 +903,7 @@ SQL;
         $data = $schema->getColumn($name);
         assert($data !== null);
 
-        // TODO deprecrate Type defined schema mappings?
+        // TODO deprecate Type defined schema mappings?
         $sql = $this->_getTypeSpecificColumnSql($data['type'], $schema, $name);
         if ($sql !== null) {
             return $sql;
