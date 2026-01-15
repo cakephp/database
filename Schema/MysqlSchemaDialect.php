@@ -383,7 +383,7 @@ class MysqlSchemaDialect extends SchemaDialect
         }
 
         $unsigned = (isset($matches[3]) && strtolower($matches[3]) === 'unsigned');
-        if (str_contains($col, 'bigint') || $col === 'bigint') {
+        if (str_contains($col, 'bigint')) {
             return ['type' => TableSchemaInterface::TYPE_BIGINTEGER, 'length' => null, 'unsigned' => $unsigned];
         }
         if ($col === 'tinyint') {
