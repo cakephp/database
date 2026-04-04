@@ -228,6 +228,7 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
         'constraint' => null,
         'deferrable' => null,
         'expression' => null,
+        'accessMethod' => null,
     ];
 
     /**
@@ -843,7 +844,7 @@ class TableSchema implements TableSchemaInterface, SqlGeneratorInterface
         // Map the backwards compatible attributes in. Need to check for existing instance.
         $attrs['referencedTable'] = $attrs['references'][0];
         $attrs['referencedColumns'] = (array)$attrs['references'][1];
-        unset($attrs['type'], $attrs['references'], $attrs['length'], $attrs['expression']);
+        unset($attrs['type'], $attrs['references'], $attrs['length'], $attrs['expression'], $attrs['accessMethod']);
 
         return $attrs;
     }
