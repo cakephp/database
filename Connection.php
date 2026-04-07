@@ -525,16 +525,8 @@ class Connection implements ConnectionInterface
 
             $callbacks = $this->afterCommitCallbacks;
             $this->afterCommitCallbacks = [];
-            $firstException = null;
             foreach ($callbacks as $cb) {
-                try {
-                    $cb();
-                } catch (Throwable $e) {
-                    $firstException ??= $e;
-                }
-            }
-            if ($firstException !== null) {
-                throw $firstException;
+                $cb();
             }
 
             return $result;
