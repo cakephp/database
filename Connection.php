@@ -487,7 +487,7 @@ class Connection implements ConnectionInterface
      * @param \Closure $callback Callback to execute after commit.
      * @return void
      */
-    public function onCommit(Closure $callback): void
+    public function afterCommit(Closure $callback): void
     {
         if (!$this->_transactionStarted) {
             $callback();
