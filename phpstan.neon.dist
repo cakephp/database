@@ -9,8 +9,6 @@ parameters:
 		- vendor/
 	ignoreErrors:
 		-
-			identifier: notIdentical.alwaysTrue
-		-
 			identifier: missingType.iterableValue
 		-
 			identifier: trait.unused
@@ -20,5 +18,5 @@ parameters:
 		-
 			message: '#^Dead catch \- InvalidArgumentException is never thrown in the try block\.$#'
 			identifier: catch.neverThrown
-			count: 1
 			path: Type/DateTimeType.php
+			reportUnmatched: false
